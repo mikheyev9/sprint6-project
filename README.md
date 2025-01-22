@@ -1,11 +1,29 @@
-# Проектная работа 4 спринта
+# Сервис ETL
 
-**Важное сообщение для тимлида:** для ускорения проверки проекта укажите ссылку на приватный репозиторий с командной работой в файле readme и отправьте свежее приглашение на аккаунт [BlueDeep](https://github.com/BigDeepBlue).
+[![Python](https://img.shields.io/badge/-Python-464646?style=flat-square&logo=Python)](https://www.python.org/)
+[![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-464646?style=flat-square&logo=PostgreSQL)](https://www.postgresql.org/)
+[![Docker](https://img.shields.io/badge/-Docker-464646?style=flat-square&logo=Docker)](https://www.docker.com/)
+[![Elasticsearch](https://img.shields.io/badge/-Elasticsearch-464646?style=flat-square&logo=elasticsearch)](https://www.elastic.co/elasticsearch/)
+[![Redis](https://img.shields.io/badge/-Redis-464646?style=flat-square&logo=Redis)](https://redis.io/)
 
-В папке **tasks** ваша команда найдёт задачи, которые необходимо выполнить в первом спринте второго модуля.  Обратите внимание на задачи **00_create_repo** и **01_create_basis**. Они расцениваются как блокирующие для командной работы, поэтому их необходимо выполнить как можно раньше.
+## Описание
+Данный ETL-сервис предназначен для загрузки данных о фильмах в Elasticsearch. Он обеспечивает надежное и эффективное управление данными, а также включает механизмы обработки ошибок и хранения состояния.
 
-Мы оценили задачи в стори поинтах, значения которых брались из [последовательности Фибоначчи](https://ru.wikipedia.org/wiki/Числа_Фибоначчи) (1,2,3,5,8,…).
 
-Вы можете разбить имеющиеся задачи на более маленькие, например, распределять между участниками команды не большие куски задания, а маленькие подзадачи. В таком случае не забудьте зафиксировать изменения в issues в репозитории.
+Для загрузки фильмов используется следующая [cхема индекса](https://code.s3.yandex.net/middle-python/learning-materials/es_schema.txt) в Elasticsearch, которая описывает структуру данных, хранящихся в индексе movies.
 
-**От каждого разработчика ожидается выполнение минимум 40% от общего числа стори поинтов в спринте.**
+### Установка и запуск
+
+1. Клонируйте репозиторий:
+
+   ```bash
+   git clone <URL_репозитория>
+   cd <папка_проекта>
+
+2. Создать .env на основе .env.template
+    ```bash
+    cp .env.template .env
+
+3. Собрать контейнеры
+    ```bash
+    docker-compose up --build -d
