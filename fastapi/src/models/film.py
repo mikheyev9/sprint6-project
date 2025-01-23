@@ -1,7 +1,11 @@
 from pydantic import BaseModel
 
 
-class Film(BaseModel):
+class FilmBase(BaseModel):
     id: str
     title: str
-    description: str
+    imdb_rating: str
+
+
+class Film(FilmBase):
+    pass

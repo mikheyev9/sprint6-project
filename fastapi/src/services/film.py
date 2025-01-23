@@ -7,7 +7,7 @@ from redis.asyncio import Redis
 
 from db.elastic import get_elastic
 from db.redis import get_redis
-from models.film import Film
+from models.film import Film, FilmBase
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
@@ -17,6 +17,17 @@ class FilmService:
         self.redis = redis
         self.elastic = elastic
 
+    #Прописать получение фильмов
+    async def get_films(
+        self,
+        genre: str = None,
+        page_size: int = 50,
+        page_number: int = 1,
+        sort: str = None,
+        query: str = None
+    ) -> Optional[list[FilmBase]]:
+        pass
+
     async def get_by_id(self, film_id: str) -> Optional[Film]:
         film = await self._film_from_cache(film_id)
         if not film:
@@ -24,7 +35,6 @@ class FilmService:
             if not film:
                 return None
             await self._put_film_to_cache(film)
-
         return film
 
     async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
