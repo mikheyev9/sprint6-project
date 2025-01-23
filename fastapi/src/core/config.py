@@ -8,6 +8,7 @@ logging_config.dictConfig(LOGGING)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
 class Settings(BaseSettings):
     project_name: str
     redis_host: str
