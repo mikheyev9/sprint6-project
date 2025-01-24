@@ -1,8 +1,5 @@
-from uuid import UUID, uuid4
-
 from pydantic import Field
 
-from .dto import AbstractDTO
 from .mixins import UUIDMixin
 
 

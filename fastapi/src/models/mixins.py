@@ -1,6 +1,6 @@
 from uuid import UUID, uuid4
 
-from pydantic import Field, computed_field
+from pydantic import Field
 
 from .dto import AbstractDTO
 
