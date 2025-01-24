@@ -1,5 +1,8 @@
-from pydantic import BaseModel
+from pydantic import Field
+from .mixins import UUIDMixin
 
 
-class Genre(BaseModel):
-    pass
+class GenreDTO(UUIDMixin):
+    """Модель жанров"""
+    name: str = Field(default_factory=str)
+
