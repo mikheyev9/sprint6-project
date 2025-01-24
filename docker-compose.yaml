@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  etl:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - theatre-db
+      - elasticsearch
+      - redis
+
+  redis:
+    container_name: redis
+    image: redislabs/redismod:latest
+    expose:
+      - "6379"
+    restart: always
+    volumes:
+      - redis_data:/data
+
+  elasticsearch:
+    image: elasticsearch:8.7.0
+    restart: always
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms2048m -Xmx2048m
+    depends_on:
+      - theatre-db
+    ports:
+      - 9200:9200
+
+
+  theatre-db:
+      image: postgres:16
+      ports:
+        - "5432:5432"
+      environment:
+        - POSTGRES_PASSWORD=qwerty1234
+        - POSTGRES_USER=postgres
+        - POSTGRES_DB=project_collection
+      restart: always
+      volumes:
+        - postgres_data:/var/lib/postgresql/data
+        - ./database/database_dump.sql:/docker-entrypoint-initdb.d/init.sql
+
+
+volumes:
+  postgres_data:
+  elasticsearch:
+  redis_data:
