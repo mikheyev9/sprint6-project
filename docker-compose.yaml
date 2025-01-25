@@ -3,7 +3,7 @@ version: '3.8'
 services:
   etl:
     build:
-      context: ./app
+      context: ./elastic
       dockerfile: Dockerfile
     restart: always
     env_file:

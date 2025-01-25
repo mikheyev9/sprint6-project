@@ -1,18 +1,23 @@
 from pydantic import Field
 
+from .genre import GenreDTO
 from .mixins import UUIDMixin
+from .person import PersonInfoDTO
 
 
-class MovieDTO(UUIDMixin):
-    """Модель фильма"""
-
+class MovieBaseDTO(UUIDMixin):
+    """Базовая информация о фильме."""
     imdb_rating: float | None = Field(default=None)
-    genres: list[str] = Field(default_factory=list)
     title: str
     description: str | None = Field(default=None)
-    directors_names: str | list[str] | None = Field(default_factory=list)
-    actors_names: str | list[str] | None = Field(default_factory=list)
-    writers_names: str | list[str] | None = Field(default_factory=list)
-    directors: list[dict] | None = Field(default_factory=list)
-    actors: list[dict] = Field(default_factory=list)
-    writers: list[dict] = Field(default_factory=list)
+
+
+class MovieInfoDTO(MovieBaseDTO):
+    """Модель фильма"""
+    genres: list[GenreDTO] = Field(default_factory=list)
+    directors: list[PersonInfoDTO] | None = Field(default_factory=list)
+    actors: list[PersonInfoDTO] = Field(default_factory=list)
+    writers: list[PersonInfoDTO] = Field(default_factory=list)
+    actors_names: list[str] = Field(default_factory=list)
+    directors_names: list[str] = Field(default_factory=list)
+    writers_names: list[str] = Field(default_factory=list)
