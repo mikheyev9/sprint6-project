@@ -9,11 +9,11 @@ class MovieBaseDTO(UUIDMixin):
     """Базовая информация о фильме."""
     imdb_rating: float | None = Field(default=None)
     title: str
-    description: str | None = Field(default=None)
 
 
 class MovieInfoDTO(MovieBaseDTO):
     """Модель фильма"""
+    description: str | None = Field(default=None)
     genres: list[GenreDTO] = Field(default_factory=list)
     directors: list[PersonInfoDTO] | None = Field(default_factory=list)
     actors: list[PersonInfoDTO] = Field(default_factory=list)
