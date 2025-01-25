@@ -6,12 +6,13 @@ from pydantic import Field
 
 from models.film import Film, FilmBase
 from services.film import FilmService, get_film_service
-
+from fastapi_cache.decorator import cache
 
 router = APIRouter()
 
 
 @router.get('/{film_id}', response_model=Film)
+@cache(expire=60)
 async def film_details(
     film_id: str,
     film_service: FilmService = Depends(get_film_service)
@@ -25,6 +26,7 @@ async def film_details(
 
 
 @router.get('/', response_model=list[FilmBase])
+@cache(expire=60)
 async def get_films(
     genre: Optional[str] = None,
     page_number: Optional[int] = Field(50, ge=1),
@@ -46,6 +48,7 @@ async def get_films(
 
 
 @router.get('/search/', response_model=list[FilmBase])
+@cache(expire=60)
 async def search_films(
     page_number: Optional[int] = Field(50, ge=1),
     page_size: Optional[int] = Field(1, ge=1),

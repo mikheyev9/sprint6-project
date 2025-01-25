@@ -1,12 +1,10 @@
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
-from redis.asyncio import Redis
-
+from src.db.redis_cache import setup_redis_cache
 from api.routers import main_router
 from core.config import settings
 from db import elastic
-from db import redis
 
 
 app = FastAPI(
@@ -19,7 +17,7 @@ app = FastAPI(
 
 @app.on_event('startup')
 async def startup():
-    redis.redis = Redis(host=settings.redis_host, port=settings.redis_port)
+    await setup_redis_cache(settings)
     elastic.es = AsyncElasticsearch(
         hosts=[f'{settings.elastic_host}:{settings.elastic_port}']
     )
@@ -27,7 +25,6 @@ async def startup():
 
 @app.on_event('shutdown')
 async def shutdown():
-    await redis.redis.close()
     await elastic.es.close()
 
 
