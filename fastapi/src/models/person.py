@@ -1,6 +1,7 @@
 from pydantic import Field
 
 from .mixins import UUIDMixin
+from .dto import AbstractDTO
 
 
 class FilmDTO(UUIDMixin):
@@ -14,3 +15,7 @@ class PersonInfoDTO(UUIDMixin):
 
     name: str = Field(default_factory=str)
     films: list[FilmDTO] = Field(default_factory=list)
+
+
+class PersonsDTO(AbstractDTO):
+    persons: list[PersonInfoDTO] = Field(default_factory=list)
