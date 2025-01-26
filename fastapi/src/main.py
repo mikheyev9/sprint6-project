@@ -3,10 +3,10 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from redis.asyncio import Redis
 
-from api.routers import main_router
-from core.config import settings
-from db import elastic
-from db import redis
+from src.api.routers import main_router
+from src.core.config import settings
+from src.db import elastic
+from src.db import redis
 
 
 app = FastAPI(
@@ -21,7 +21,7 @@ app = FastAPI(
 async def startup():
     redis.redis = Redis(host=settings.redis_host, port=settings.redis_port)
     elastic.es = AsyncElasticsearch(
-        hosts=[f'{settings.elastic_host}:{settings.elastic_port}']
+        hosts=[f'{settings.elasticsearch_dsn}']
     )
 
 

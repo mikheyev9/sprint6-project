@@ -2,7 +2,7 @@ import os
 from logging import config as logging_config
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from core.logger import LOGGING
+from .logger import LOGGING
 
 logging_config.dictConfig(LOGGING)
 
@@ -13,8 +13,7 @@ class Settings(BaseSettings):
     project_name: str
     redis_host: str
     redis_port: int
-    elastic_host: str
-    elastic_port: int
+    elasticsearch_dsn: str
 
     model_config = SettingsConfigDict(env_file='.env')
 

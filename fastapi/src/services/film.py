@@ -5,9 +5,9 @@ from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
 from redis.asyncio import Redis
 
-from db.elastic import get_elastic
-from db.redis import get_redis
-from models.film import Film, FilmBase
+from src.db.elastic import get_elastic
+from src.db.redis import get_redis
+from src.models.film import MovieInfoDTO, MovieBaseDTO
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5
 
@@ -25,10 +25,10 @@ class FilmService:
         page_number: int = 1,
         sort: str = None,
         query: str = None
-    ) -> Optional[list[FilmBase]]:
+    ) -> Optional[list[MovieBaseDTO]]:
         pass
 
-    async def get_by_id(self, film_id: str) -> Optional[Film]:
+    async def get_by_id(self, film_id: str) -> Optional[MovieInfoDTO]:
         film = await self._film_from_cache(film_id)
         if not film:
             film = await self._get_film_from_elastic(film_id)
@@ -37,22 +37,22 @@ class FilmService:
             await self._put_film_to_cache(film)
         return film
 
-    async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
+    async def _get_film_from_elastic(self, film_id: str) -> Optional[MovieInfoDTO]:
         try:
             doc = await self.elastic.get(index='movies', id=film_id)
         except NotFoundError:
             return None
-        return Film(**doc['_source'])
+        return MovieInfoDTO(**doc['_source'])
 
-    async def _film_from_cache(self, film_id: str) -> Optional[Film]:
+    async def _film_from_cache(self, film_id: str) -> Optional[MovieInfoDTO]:
         data = await self.redis.get(film_id)
         if not data:
             return None
 
-        film = Film.parse_raw(data)
+        film = MovieInfoDTO.parse_raw(data)
         return film
 
-    async def _put_film_to_cache(self, film: Film):
+    async def _put_film_to_cache(self, film: MovieInfoDTO):
         await self.redis.set(
             film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS
         )
