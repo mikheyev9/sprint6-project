@@ -2,19 +2,18 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from models.genre import Genre
-from services.genre import GenreService, get_genre_service
-from fastapi_cache.decorator import cache
+
+from src.models.genre import GenreDTO, GenresDTO
+from src.services.genre import GenreService, get_genre_service
 
 router = APIRouter()
 
 
-@router.get('/{genre_id}', response_model=Genre)
-@cache(expire=60)
+@router.get('/{genre_id}', response_model=GenreDTO)
 async def genre_details(
     genre_id: str,
     genre_service: GenreService = Depends(get_genre_service)
-) -> Genre:
+) -> GenreDTO:
     genre = await genre_service.get_by_id(
         genre_id=genre_id
     )
@@ -25,11 +24,10 @@ async def genre_details(
     return genre
 
 
-@router.get('/', response_model=list[Genre])
-@cache(expire=60)
+@router.get('/', response_model=GenresDTO)
 async def get_films(
     genre_service: GenreService = Depends(get_genre_service)
-) -> list[Genre]:
+) -> GenresDTO:
     genres = await genre_service.get_genres()
     if not genres:
         raise HTTPException(

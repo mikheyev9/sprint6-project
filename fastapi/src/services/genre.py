@@ -5,9 +5,9 @@ from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
 from redis.asyncio import Redis
 
-from db.elastic import get_elastic
-from db.redis import get_redis
-from models.genre import Genre
+from src.db.elastic import get_elastic
+from src.db.redis import get_redis
+from src.models.genre import GenreDTO, GenresDTO
 
 
 class GenreService:
@@ -16,11 +16,11 @@ class GenreService:
         self.elastic = elastic
 
     #Прописать получение жанров
-    async def get_genres(self) -> Optional[list[Genre]]:
+    async def get_genres(self) -> Optional[GenresDTO]:
         pass
 
     #Прописать получение жанра
-    async def get_by_id(self, genre_id: str) -> Optional[Genre]:
+    async def get_by_id(self, genre_id: str) -> Optional[GenreDTO]:
         pass
 
 

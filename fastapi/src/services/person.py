@@ -5,9 +5,10 @@ from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
 from redis.asyncio import Redis
 
-from db.elastic import get_elastic
-from db.redis import get_redis
-from models.person import Person, PersonFilm
+from src.db.elastic import get_elastic
+from src.db.redis import get_redis
+from src.models.person import PersonInfoDTO, PersonsDTO
+from src.models.film import MovieBaseDTO
 
 
 class PersonService:
@@ -22,18 +23,18 @@ class PersonService:
         page_number: int = 1,
         query: str = None
 
-    ) -> Optional[list[Person]]:
+    ) -> Optional[PersonsDTO]:
         pass
 
     #Прописать получение персоны
-    async def get_by_id(self, person_id: str) -> Optional[Person]:
+    async def get_by_id(self, person_id: str) -> Optional[PersonInfoDTO]:
         pass
 
     #Прописать получение фильмов по персоне
     async def get_by_person(
         self,
         person_id: str
-    ) -> Optional[list[PersonFilm]]:
+    ) -> Optional[list[MovieBaseDTO]]:
         pass
 
 
