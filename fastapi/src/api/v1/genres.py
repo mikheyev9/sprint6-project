@@ -2,9 +2,9 @@ from http import HTTPStatus
 
 from fastapi import APIRouter, Depends, HTTPException
 
+
 from src.models.genre import GenreDTO, GenresDTO
 from src.services.genre import GenreService, get_genre_service
-
 
 router = APIRouter()
 

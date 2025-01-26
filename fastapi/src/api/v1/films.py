@@ -3,11 +3,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+
 from src.models.film import MovieInfoDTO, MovieBaseDTO
 from src.services.film import FilmService, get_film_service
 
-
 router = APIRouter()
+
 
 
 @router.get('/{film_id}', response_model=MovieInfoDTO)

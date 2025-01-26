@@ -7,8 +7,8 @@ from src.models.person import PersonInfoDTO, PersonsDTO
 from src.models.film import MovieBaseDTO
 from src.services.person import PersonService, get_person_service
 
-
 router = APIRouter()
+
 
 
 @router.get('/{person_id}', response_model=PersonInfoDTO)
@@ -22,6 +22,7 @@ async def person_details(
             status_code=HTTPStatus.NOT_FOUND, detail='person not found'
         )
     return person
+
 
 
 @router.get('/search/', response_model=PersonsDTO)
