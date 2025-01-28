@@ -1,8 +1,6 @@
-from typing import Optional
+from fastapi import Request
 from elasticsearch import AsyncElasticsearch
 
-es: Optional[AsyncElasticsearch] = None
 
-
-async def get_elastic() -> AsyncElasticsearch:
-    return es
+async def get_elastic(request: Request) -> AsyncElasticsearch:
+    return request.app.state.elastic
