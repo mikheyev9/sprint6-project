@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from .v1 import films_router, genres_router, persons_router
+from api.v1 import films_router, genres_router, persons_router
 
 
 main_router = APIRouter()
