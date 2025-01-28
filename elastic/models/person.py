@@ -16,5 +16,5 @@ class FilmDTO(AbstractDTO):
 class PersonInfoDTO(UUIDMixin):
     """Модель информации о человеке."""
 
-    name: str = Field(default_factory=str)
+    full_name: str = Field(default_factory=str)
     films: list[FilmDTO] = Field(default_factory=list)
