@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 
 from models.person import PersonInfoDTO
 from models.film import MovieBaseDTO
+from services.film import FilmService
 from services.person import PersonService
 from services.service_factory import service_for
 from fastapi_cache.decorator import cache
@@ -57,6 +58,7 @@ async def get_films(
     response: Response,
     person_id: str,
     person_service: PersonService = Depends(service_for("person")),
+    film_service: FilmService = Depends(service_for("film"))
 ) -> list[MovieBaseDTO]:
     person = await person_service.get_by_id(person_id)
 
@@ -64,7 +66,4 @@ async def get_films(
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='person not found'
         )
-    return [MovieBaseDTO(
-        id=film.id,
-        title=f"Unknown Movie ({film.id})"
-    ) for film in person.films]
+    return [await film_service.get_by_id(film.id) for film in person.films]
