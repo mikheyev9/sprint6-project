@@ -4,13 +4,14 @@ from typing import List, Optional
 from elasticsearch import AsyncElasticsearch, NotFoundError, TransportError
 
 from services.base_service import BaseService
-from models.film import MovieBaseDTO
+from models.film import MovieInfoDTO, MovieBaseDTO
 
 logger = logging.getLogger(__name__)
 
+
 class FilmService(BaseService[MovieBaseDTO]):
     service_name = 'film'
-    
+
     def __init__(self, elastic: AsyncElasticsearch):
         super().__init__(elastic, index="movies", model=MovieBaseDTO)
 
@@ -23,9 +24,10 @@ class FilmService(BaseService[MovieBaseDTO]):
         query: Optional[str] = None
     ) -> List[MovieBaseDTO]:
         """
-        Получает список фильмов из Elasticsearch с поддержкой фильтрации, сортировки и пагинации.
+        Получает список фильмов из Elasticsearch
+        с поддержкой фильтрации, сортировки и пагинации.
         """
-        
+
         search_query = {
             "size": page_size,
             "from": (page_number - 1) * page_size,
@@ -43,7 +45,13 @@ class FilmService(BaseService[MovieBaseDTO]):
             must_conditions.append({
                 "multi_match": {
                     "query": query,
-                    "fields": ["title", "description", "actors_names", "directors_names", "writers_names"]
+                    "fields": [
+                        "title",
+                        "description",
+                        "actors",
+                        "writers",
+                        "directors"
+                    ]
                 }
             })
 
@@ -54,8 +62,15 @@ class FilmService(BaseService[MovieBaseDTO]):
             search_query["query"]["bool"]["filter"] = filter_conditions
 
         try:
-            response = await self.elastic.search(index=self.index, body=search_query)
-            return [self.model(**hit["_source"]) for hit in response["hits"]["hits"]]
+            response = await self.elastic.search(
+                index=self.index,
+                body=search_query
+            )
+            return [
+                self.model(
+                    **hit["_source"]
+                ) for hit in response["hits"]["hits"]
+            ]
 
         except NotFoundError:
             logger.warning(f"Фильмы не найдены: genre={genre}, query={query}")

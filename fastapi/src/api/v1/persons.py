@@ -3,7 +3,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 
-from models.person import PersonInfoDTO, PersonsDTO
+from models.person import PersonInfoDTO
 from models.film import MovieBaseDTO
 from services.person import PersonService
 from services.service_factory import service_for
@@ -17,7 +17,7 @@ router = APIRouter()
 async def person_details(
     person_id: str,
     request: Request,
-    response: Response, 
+    response: Response,
     person_service: PersonService = Depends(service_for("person")),
 ) -> PersonInfoDTO:
     person = await person_service.get_by_id(person_id)
@@ -29,15 +29,15 @@ async def person_details(
 
 
 @cache(expire=60)
-@router.get('/search/', response_model=PersonsDTO)
+@router.get('/search/', response_model=list[PersonInfoDTO])
 async def search_person(
     request: Request,
-    response: Response, 
+    response: Response,
     page_size: Annotated[int, Query(gt=0)] = 50,
     page_number: Annotated[int, Query(gt=0)] = 1,
     query: Annotated[str, Query()] = None,
     person_service: PersonService = Depends(service_for("person")),
-) -> PersonsDTO:
+) -> list[PersonInfoDTO]:
     persons = await person_service.search(
         page_number=page_number,
         page_size=page_size,
@@ -54,7 +54,7 @@ async def search_person(
 @router.get('/{person_id}/film', response_model=list[MovieBaseDTO])
 async def get_films(
     request: Request,
-    response: Response, 
+    response: Response,
     person_id: str,
     person_service: PersonService = Depends(service_for("person")),
 ) -> list[MovieBaseDTO]:
@@ -64,4 +64,7 @@ async def get_films(
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='person not found'
         )
-    return [MovieBaseDTO(id=film.id, title=f"Unknown Movie ({film.id})") for film in person.films]
+    return [MovieBaseDTO(
+        id=film.id,
+        title=f"Unknown Movie ({film.id})"
+    ) for film in person.films]
