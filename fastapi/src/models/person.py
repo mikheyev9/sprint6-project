@@ -9,10 +9,12 @@ class FilmDTO(UUIDMixin):
 
     roles: List[str] = Field(default_factory=list)
 
+
 class PersonDTO(UUIDMixin):
     """Модель информации о человеке."""
 
-    name: str = Field(default_factory=str)
+    full_name: str = Field(default_factory=str)
+
 
 class PersonInfoDTO(UUIDMixin):
     """Модель информации о человеке с фильмами."""

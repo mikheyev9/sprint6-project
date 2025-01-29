@@ -26,7 +26,7 @@ class Query:
                     jsonb_agg(
                         DISTINCT jsonb_build_object(
                             'id', p.id,
-                            'name', p.full_name
+                            'full_name', p.full_name
                         )
                     ) FILTER (WHERE pfw.role = 'actor'),
                     '[]'
@@ -35,7 +35,7 @@ class Query:
                     jsonb_agg(
                         DISTINCT jsonb_build_object(
                             'id', p.id,
-                            'name', p.full_name
+                            'full_name', p.full_name
                         )
                     ) FILTER (WHERE pfw.role = 'director'),
                     '[]'
@@ -44,12 +44,20 @@ class Query:
                     jsonb_agg(
                         DISTINCT jsonb_build_object(
                             'id', p.id,
-                            'name', p.full_name
+                            'full_name', p.full_name
                         )
                     ) FILTER (WHERE pfw.role = 'writer'),
                     '[]'
                 ) AS writers,
-                array_agg(DISTINCT g.name) AS genres,
+                COALESCE(
+                    jsonb_agg(
+                        DISTINCT jsonb_build_object(
+                            'id', g.id,
+                            'name', g.name
+                        )
+                    ) FILTER (WHERE g.id IS NOT NULL),
+                    '[]'
+                ) AS genre,
                 COALESCE(array_agg(DISTINCT p.full_name) FILTER (WHERE pfw.role = 'actor'), ARRAY[]::text[]) AS actors_names,
                 COALESCE(array_agg(DISTINCT p.full_name) FILTER (WHERE pfw.role = 'director'), ARRAY[]::text[]) AS directors_names,
                 COALESCE(array_agg(DISTINCT p.full_name) FILTER (WHERE pfw.role = 'writer'), ARRAY[]::text[]) AS writers_names
@@ -59,8 +67,8 @@ class Query:
             LEFT JOIN content.genre_film_work gfw ON gfw.film_work_id = fw.id
             LEFT JOIN content.genre g ON g.id = gfw.genre_id
             WHERE fw.modified > {last_modified}
-                  OR p.modified > {last_modified}
-                  OR g.modified > {last_modified}
+                OR p.modified > {last_modified}
+                OR g.modified > {last_modified}
             GROUP BY fw.id
             ORDER BY fw.modified
             '''

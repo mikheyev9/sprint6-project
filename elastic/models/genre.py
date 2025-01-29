@@ -1,5 +1,7 @@
 from pydantic import Field
 from .mixins import UUIDMixin
+from .dto import AbstractDTO
+from uuid import UUID, uuid4
 
 
 class GenreDTO(UUIDMixin):
@@ -7,6 +9,7 @@ class GenreDTO(UUIDMixin):
     name: str = Field(default_factory=str)
 
 
-# Через obj connect запрашиваем эластик(логика с redis) и 
-# получая данные мы выладируем их с помощью pydantic 
-# и отдаем response
+class MoviesGenreDTO(AbstractDTO):
+    "Модель жанров для Movies"
+    id: UUID = Field(default_factory=uuid4)
+    name: str = Field(default_factory=str)
