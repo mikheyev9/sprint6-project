@@ -16,8 +16,6 @@ class PersonDTO(UUIDMixin):
     full_name: str = Field(default_factory=str)
 
 
-class PersonInfoDTO(UUIDMixin):
+class PersonInfoDTO(PersonDTO):
     """Модель информации о человеке с фильмами."""
-
-    full_name: str = Field(default_factory=str)
     films: List[FilmDTO] = Field(default_factory=list)
