@@ -9,11 +9,11 @@ from models.film import MovieInfoDTO, MovieBaseDTO
 logger = logging.getLogger(__name__)
 
 
-class FilmService(BaseService[MovieBaseDTO]):
+class FilmService(BaseService[MovieInfoDTO]):
     service_name = 'film'
 
     def __init__(self, elastic: AsyncElasticsearch):
-        super().__init__(elastic, index="movies", model=MovieBaseDTO)
+        super().__init__(elastic, index="movies", model=MovieInfoDTO)
 
     async def search(
         self,
@@ -47,10 +47,6 @@ class FilmService(BaseService[MovieBaseDTO]):
                     "query": query,
                     "fields": [
                         "title",
-                        "description",
-                        "actors",
-                        "writers",
-                        "directors"
                     ]
                 }
             })
@@ -67,7 +63,7 @@ class FilmService(BaseService[MovieBaseDTO]):
                 body=search_query
             )
             return [
-                self.model(
+                MovieBaseDTO(
                     **hit["_source"]
                 ) for hit in response["hits"]["hits"]
             ]

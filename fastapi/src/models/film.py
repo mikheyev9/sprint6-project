@@ -2,7 +2,7 @@ from pydantic import Field
 
 from .genre import GenreDTO
 from .mixins import UUIDMixin
-from .person import PersonInfoDTO
+from .person import PersonDTO
 
 
 class MovieBaseDTO(UUIDMixin):
@@ -14,7 +14,10 @@ class MovieBaseDTO(UUIDMixin):
 class MovieInfoDTO(MovieBaseDTO):
     """Модель фильма"""
     description: str | None = Field(default=None)
-    genres: list[GenreDTO] = Field(default_factory=list)
-    actors: list[PersonInfoDTO] = Field(default_factory=list)
-    writers: list[PersonInfoDTO] = Field(default_factory=list)
-    directors: list[PersonInfoDTO] | None = Field(default_factory=list)
+    genres: list[str] = Field(default_factory=list)
+    actors: list[PersonDTO] = Field(default_factory=list)
+    writers: list[PersonDTO] = Field(default_factory=list)
+    directors: list[PersonDTO] | None = Field(default_factory=list)
+    actors_names: list[str] = Field(default_factory=list)
+    directors_names: list[str] = Field(default_factory=list)
+    writers_names: list[str] = Field(default_factory=list)
