@@ -39,7 +39,13 @@ class FilmService(BaseService[MovieInfoDTO]):
         filter_conditions = []
 
         if genre:
-            filter_conditions.append({"term": {"genres": genre}})
+            filter_conditions.append({
+                "nested": {
+                    "path": "genre", "query": {
+                        "bool": {"must": [{"match": {"genre.name": genre}}]}
+                    }
+                }
+            })
 
         if query:
             must_conditions.append({

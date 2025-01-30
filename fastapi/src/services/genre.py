@@ -12,6 +12,7 @@ class GenreService(BaseService[GenresDTO]):
     """Сервис для работы с жанрами в Elasticsearch."""
 
     service_name = "genre"
+    page_size = 50
 
     def __init__(self, elastic: AsyncElasticsearch):
         super().__init__(elastic, index="genres", model=GenreDTO)
@@ -21,9 +22,13 @@ class GenreService(BaseService[GenresDTO]):
         Возвращает список всех жанров из Elasticsearch.
         """
 
-        search_query = {"query": {"match_all": {}}}
+        search_query = {
+            "size": self.page_size,
+            "query": {"match_all": {}}
+        }
 
         try:
+            print(search_query)
             response = await self.elastic.search(
                 index=self.index,
                 body=search_query
