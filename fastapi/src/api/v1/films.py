@@ -3,7 +3,6 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 
-
 from models.film import MovieInfoDTO, MovieBaseDTO
 from services.film import FilmService
 from services.service_factory import service_for
@@ -16,7 +15,7 @@ router = APIRouter()
 @router.get('/', response_model=list[MovieBaseDTO])
 async def get_films(
     request: Request,
-    response: Response, 
+    response: Response,
     genre: str | None = None,
     page_size: Annotated[int, Query(gt=0)] = 50,
     page_number: Annotated[int, Query(gt=0)] = 1,
@@ -40,7 +39,7 @@ async def get_films(
 @router.get('/{film_id}', response_model=MovieInfoDTO)
 async def film_details(
     request: Request,
-    response: Response, 
+    response: Response,
     film_id: str,
     film_service: FilmService = Depends(service_for("film"))
 ) -> MovieInfoDTO:
@@ -52,12 +51,11 @@ async def film_details(
     return film
 
 
-
 @cache(expire=60)
 @router.get('/search/', response_model=list[MovieBaseDTO])
 async def search_films(
     request: Request,
-    response: Response, 
+    response: Response,
     page_size: Annotated[int, Query(gt=0)] = 50,
     page_number: Annotated[int, Query(gt=0)] = 1,
     query: Annotated[str, Query()] = None,

@@ -1,6 +1,5 @@
 import os
 from logging import config as logging_config
-from pydantic import AnyHttpUrl, PostgresDsn, RedisDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .logger import LOGGING
@@ -25,7 +24,6 @@ class Settings(BaseSettings):
     elasticsearch_dsn: str
 
     model_config = SettingsConfigDict(env_file='.env')
-
 
 
 settings = Settings()
