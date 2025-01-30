@@ -1,45 +1,57 @@
-from functools import lru_cache
-from typing import Optional
+from typing import List, Optional
+import logging
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
-from fastapi import Depends
-from redis.asyncio import Redis
+from models.person import PersonInfoDTO
+from services.base_service import BaseService
 
-from db.elastic import get_elastic
-from db.redis import get_redis
-from models.person import Person, PersonFilm
+logger = logging.getLogger(__name__)
 
 
-class PersonService:
-    def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
-        self.redis = redis
-        self.elastic = elastic
+class PersonService(BaseService[PersonInfoDTO]):
+    """Сервис для работы с данными о персонах в Elasticsearch."""
 
-    #Прописать получение по параметрам поиска
-    async def get_persons(
+    service_name = "person"
+
+    def __init__(self, elastic: AsyncElasticsearch):
+        super().__init__(elastic, index="persons", model=PersonInfoDTO)
+
+    async def search(
         self,
         page_size: int = 50,
         page_number: int = 1,
-        query: str = None
+        query: Optional[str] = None
+    ) -> List[PersonInfoDTO]:
+        """
+        Выполняет поиск персон по имени.
+        """
 
-    ) -> Optional[list[Person]]:
-        pass
+        search_query = {
+            "size": page_size,
+            "from": (page_number - 1) * page_size,
+            "query": {"bool": {"must": []}}
+        }
 
-    #Прописать получение персоны
-    async def get_by_id(self, person_id: str) -> Optional[Person]:
-        pass
+        if query:
+            search_query["query"]["bool"]["must"].append(
+                {"multi_match": {"query": query, "fields": ["full_name"]}}
+            )
 
-    #Прописать получение фильмов по персоне
-    async def get_by_person(
-        self,
-        person_id: str
-    ) -> Optional[list[PersonFilm]]:
-        pass
+        try:
+            response = await self.elastic.search(
+                index=self.index,
+                body=search_query
+            )
+            return [
+                self.model(
+                    **hit["_source"]
+                ) for hit in response["hits"]["hits"]
+            ]
 
+        except NotFoundError:
+            logger.warning(f"Персоны не найдены. Запрос: query={query}")
+            return []
 
-@lru_cache()
-def get_person_service(
-        redis: Redis = Depends(get_redis),
-        elastic: AsyncElasticsearch = Depends(get_elastic),
-) -> PersonService:
-    return PersonService(redis, elastic)
+        except Exception as e:
+            logger.error(f"Ошибка при запросе к Elasticsearch: {e}")
+            return []

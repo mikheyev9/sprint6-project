@@ -1,12 +1,35 @@
 from elasticsearch import AsyncElasticsearch
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
-from redis.asyncio import Redis
+from contextlib import asynccontextmanager
 
+
+from db.redis_cache import RedisCache
 from api.routers import main_router
 from core.config import settings
-from db import elastic
-from db import redis
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Управление ресурсами FastAPI"""
+
+    elastic_client = None
+
+    try:
+        redis_cache = RedisCache(settings)
+        await redis_cache.connect()
+
+        elastic_client = AsyncElasticsearch(hosts=[settings.elasticsearch_dsn])
+        app.state.elastic = elastic_client
+
+        yield
+
+    finally:
+    
+        await redis_cache.close()
+
+        if elastic_client:
+            await elastic_client.close()
 
 
 app = FastAPI(
@@ -14,21 +37,7 @@ app = FastAPI(
     docs_url='/api/openapi',
     openapi_url='/api/openapi.json',
     default_response_class=ORJSONResponse,
+    lifespan=lifespan,
 )
-
-
-@app.on_event('startup')
-async def startup():
-    redis.redis = Redis(host=settings.redis_host, port=settings.redis_port)
-    elastic.es = AsyncElasticsearch(
-        hosts=[f'{settings.elastic_host}:{settings.elastic_port}']
-    )
-
-
-@app.on_event('shutdown')
-async def shutdown():
-    await redis.redis.close()
-    await elastic.es.close()
-
 
 app.include_router(main_router)

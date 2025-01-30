@@ -1,21 +1,26 @@
 from http import HTTPStatus
-from typing import Optional
+from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
-from pydantic import Field
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 
-from models.person import Person, PersonFilm
-from services.person import PersonService, get_person_service
-
+from models.person import PersonInfoDTO
+from models.film import MovieBaseDTO
+from services.film import FilmService
+from services.person import PersonService
+from services.service_factory import service_for
+from fastapi_cache.decorator import cache
 
 router = APIRouter()
 
 
-@router.get('/{person_id}', response_model=Person)
+@cache(expire=60)
+@router.get('/{person_id}', response_model=PersonInfoDTO)
 async def person_details(
     person_id: str,
-    person_service: PersonService = Depends(get_person_service)
-) -> Person:
+    request: Request,
+    response: Response,
+    person_service: PersonService = Depends(service_for("person")),
+) -> PersonInfoDTO:
     person = await person_service.get_by_id(person_id)
     if not person:
         raise HTTPException(
@@ -24,14 +29,17 @@ async def person_details(
     return person
 
 
-@router.get('/search/', response_model=list[Person])
+@cache(expire=60)
+@router.get('/search/', response_model=list[PersonInfoDTO])
 async def search_person(
-    page_number: Optional[int] = Field(50, ge=1),
-    page_size: Optional[int] = Field(1, ge=1),
-    query: str = Field(min_length=1, max_length=100),
-    person_service: PersonService = Depends(get_person_service)
-) -> list[Person]:
-    persons = await person_service.get_persons(
+    request: Request,
+    response: Response,
+    page_size: Annotated[int, Query(gt=0)] = 50,
+    page_number: Annotated[int, Query(gt=0)] = 1,
+    query: Annotated[str, Query()] = None,
+    person_service: PersonService = Depends(service_for("person")),
+) -> list[PersonInfoDTO]:
+    persons = await person_service.search(
         page_number=page_number,
         page_size=page_size,
         query=query,
@@ -43,14 +51,19 @@ async def search_person(
     return persons
 
 
-@router.get('/{person_id}/film', response_model=list[PersonFilm])
+@cache(expire=60)
+@router.get('/{person_id}/film', response_model=list[MovieBaseDTO])
 async def get_films(
+    request: Request,
+    response: Response,
     person_id: str,
-    person_service: PersonService = Depends(get_person_service)
-) -> list[PersonFilm]:
-    films = await person_service.get_by_person(person_id)
-    if not films:
+    person_service: PersonService = Depends(service_for("person")),
+    film_service: FilmService = Depends(service_for("film"))
+) -> list[MovieBaseDTO]:
+    person = await person_service.get_by_id(person_id)
+
+    if not person:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='films not found'
+            status_code=HTTPStatus.NOT_FOUND, detail='person not found'
         )
-    return films
+    return [await film_service.get_by_id(film.id) for film in person.films]

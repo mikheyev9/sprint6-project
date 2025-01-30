@@ -1,21 +1,21 @@
+from typing import List
 from pydantic import Field
 
 from .mixins import UUIDMixin
-from .dto import AbstractDTO
 
 
 class FilmDTO(UUIDMixin):
     """Модель фильма."""
 
-    roles: list[str] = Field(default_factory=list)
+    roles: List[str] = Field(default_factory=list)
 
 
-class PersonInfoDTO(UUIDMixin):
+class PersonDTO(UUIDMixin):
     """Модель информации о человеке."""
 
-    name: str = Field(default_factory=str)
-    films: list[FilmDTO] = Field(default_factory=list)
+    full_name: str = Field(default_factory=str)
 
 
-class PersonsDTO(AbstractDTO):
-    persons: list[PersonInfoDTO] = Field(default_factory=list)
+class PersonInfoDTO(PersonDTO):
+    """Модель информации о человеке с фильмами."""
+    films: List[FilmDTO] = Field(default_factory=list)

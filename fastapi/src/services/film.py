@@ -1,66 +1,83 @@
-from functools import lru_cache
-from typing import Optional
+import logging
+from typing import List, Optional
 
-from elasticsearch import AsyncElasticsearch, NotFoundError
-from fastapi import Depends
-from redis.asyncio import Redis
+from elasticsearch import AsyncElasticsearch, NotFoundError, TransportError
 
-from db.elastic import get_elastic
-from db.redis import get_redis
-from models.film import Film, FilmBase
+from services.base_service import BaseService
+from models.film import MovieInfoDTO, MovieBaseDTO
 
-FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5
+logger = logging.getLogger(__name__)
 
 
-class FilmService:
-    def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
-        self.redis = redis
-        self.elastic = elastic
+class FilmService(BaseService[MovieInfoDTO]):
+    service_name = 'film'
 
-    #Прописать получение фильмов
-    async def get_films(
+    def __init__(self, elastic: AsyncElasticsearch):
+        super().__init__(elastic, index="movies", model=MovieInfoDTO)
+
+    async def search(
         self,
-        genre: str = None,
+        genre: Optional[str] = None,
         page_size: int = 50,
         page_number: int = 1,
-        sort: str = None,
-        query: str = None
-    ) -> Optional[list[FilmBase]]:
-        pass
+        sort: str = "imdb_rating",
+        query: Optional[str] = None
+    ) -> List[MovieBaseDTO]:
+        """
+        Получает список фильмов из Elasticsearch
+        с поддержкой фильтрации, сортировки и пагинации.
+        """
 
-    async def get_by_id(self, film_id: str) -> Optional[Film]:
-        film = await self._film_from_cache(film_id)
-        if not film:
-            film = await self._get_film_from_elastic(film_id)
-            if not film:
-                return None
-            await self._put_film_to_cache(film)
-        return film
+        search_query = {
+            "size": page_size,
+            "from": (page_number - 1) * page_size,
+            "sort": [{sort: "desc"}],
+            "query": {"bool": {}}
+        }
 
-    async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
+        must_conditions = []
+        filter_conditions = []
+
+        if genre:
+            filter_conditions.append({
+                "nested": {
+                    "path": "genre", "query": {
+                        "bool": {"must": [{"match": {"genre.name": genre}}]}
+                    }
+                }
+            })
+
+        if query:
+            must_conditions.append({
+                "multi_match": {
+                    "query": query,
+                    "fields": [
+                        "title",
+                    ]
+                }
+            })
+
+        if must_conditions:
+            search_query["query"]["bool"]["must"] = must_conditions
+
+        if filter_conditions:
+            search_query["query"]["bool"]["filter"] = filter_conditions
+
         try:
-            doc = await self.elastic.get(index='movies', id=film_id)
+            response = await self.elastic.search(
+                index=self.index,
+                body=search_query
+            )
+            return [
+                MovieBaseDTO(
+                    **hit["_source"]
+                ) for hit in response["hits"]["hits"]
+            ]
+
         except NotFoundError:
-            return None
-        return Film(**doc['_source'])
+            logger.warning(f"Фильмы не найдены: genre={genre}, query={query}")
+            return []
 
-    async def _film_from_cache(self, film_id: str) -> Optional[Film]:
-        data = await self.redis.get(film_id)
-        if not data:
-            return None
-
-        film = Film.parse_raw(data)
-        return film
-
-    async def _put_film_to_cache(self, film: Film):
-        await self.redis.set(
-            film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS
-        )
-
-
-@lru_cache()
-def get_film_service(
-        redis: Redis = Depends(get_redis),
-        elastic: AsyncElasticsearch = Depends(get_elastic),
-) -> FilmService:
-    return FilmService(redis, elastic)
+        except TransportError as e:
+            logger.error(f"Ошибка запроса к Elasticsearch: {e}")
+            return []
