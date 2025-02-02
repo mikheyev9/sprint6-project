@@ -31,27 +31,29 @@ async def aiohttp_client():
     aiohttp_client = aiohttp.ClientSession()
     yield aiohttp_client
     await aiohttp_client.close()
+    
 
 @pytest_asyncio.fixture(name='es_write_data')
 def es_write_data(es_client):
     async def inner(index: str, es_data: list[dict]):
-        data = [{
-            '_index': index, '_id': row['id'], '_source': row
-        } for row in es_data]
-        if await es_client.indices.exists(
-            index=test_settings.elasticsearch_index
-        ):
-            await es_client.indices.delete(
-                index=test_settings.elasticsearch_index
-            )
-        await es_client.indices.create(
-            index=test_settings.elasticsearch_index,
-            **MOVIES_INDEX_MAPPING
-        )
+        data = [{'_index': index, '_id': row['id'], '_source': row} for row in es_data]
+
+        if await es_client.indices.exists(index=index):
+            await es_client.indices.delete(index=index)
+
+        await es_client.indices.create(index=index, **MOVIES_INDEX_MAPPING)
         updated, errors = await async_bulk(client=es_client, actions=data)
+
         if errors:
+            print(f"Ошибка записи в Elasticsearch: {errors}")
             raise Exception('Ошибка записи данных в Elasticsearch')
+
+        await es_client.indices.refresh(index=index)
+        count = await es_client.count(index=index)
+        print(f"Записано {count['count']} документов в индекс {index}")
+
     return inner
+
 
 @pytest_asyncio.fixture(name='make_get_request')
 def make_get_request(aiohttp_client):
