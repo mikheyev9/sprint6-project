@@ -25,7 +25,7 @@ async def lifespan(app: FastAPI):
         yield
 
     finally:
-    
+
         await redis_cache.close()
 
         if elastic_client:

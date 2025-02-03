@@ -11,8 +11,8 @@ from fastapi_cache.decorator import cache
 router = APIRouter()
 
 
-@cache(expire=60)
 @router.get('/', response_model=list[MovieBaseDTO])
+@cache(expire=60)
 async def get_films(
     request: Request,
     response: Response,
@@ -35,8 +35,8 @@ async def get_films(
     return films
 
 
-@cache(expire=60, )
 @router.get('/{film_id}', response_model=MovieInfoDTO)
+@cache(expire=60)
 async def film_details(
     request: Request,
     response: Response,
@@ -51,8 +51,8 @@ async def film_details(
     return film
 
 
-@cache(expire=60)
 @router.get('/search/', response_model=list[MovieBaseDTO])
+@cache(expire=60)
 async def search_films(
     request: Request,
     response: Response,
