@@ -1,14 +1,17 @@
 from http import HTTPStatus
 
-from functional.testdata.es_mapping import (
-    MOVIES_INDEX_MAPPING,
+from functional.testdata.etl_indexes.movies_indexes import (
+    MOVIES_INDEX_MAPPING
+)
+from functional.testdata.etl_indexes.persons_indexes import (
     PERSONS_INDEX_MAPPING
 )
-from functional.testdata.es_generate import (
-    generate_films,
+from tests.functional.testdata.es_generate.film_generate import (
+    generate_films
+)
+from tests.functional.testdata.es_generate.genre_generate import (
     generate_persons
 )
-
 
 FILMS_PARAM = [
     'films',

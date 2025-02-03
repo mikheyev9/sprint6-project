@@ -24,6 +24,7 @@ async def es_client():
     yield es_client
     await es_client.close()
 
+
 @pytest_asyncio.fixture(name='aiohttp_client', scope='session')
 async def aiohttp_client():
     aiohttp_client = aiohttp.ClientSession()
@@ -37,6 +38,7 @@ async def redis__client():
     yield redis_client
     await redis_client.aclose()
 
+
 @pytest_asyncio.fixture(name='redis_clean')
 def redis_clean(redis_client):
     async def inner():
@@ -47,6 +49,7 @@ def redis_clean(redis_client):
             raise Exception(f"Ошибка: ключей Redis:{count_keys} больше 0.")
         print(f"Redis готов к тестам. Кол-во ключей:{count_keys}.")
     return inner
+
 
 @pytest_asyncio.fixture(name='es_write_data')
 def es_write_data(es_client):
@@ -81,5 +84,5 @@ def make_get_request(aiohttp_client):
                 response.status,
                 len(await response.json()),
                 time.time() - time_start
-            )       
+            )
     return inner
