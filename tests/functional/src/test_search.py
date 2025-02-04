@@ -24,7 +24,8 @@ async def test_films_search(
     )
     assert len(body) == expected_answer['length'], (
         f'Проверьте, что get-запрос к `/api/v1/{endpoint}` '
-        f'возвращает в ответе нужное количество {expected_answer['length']}.'
+        'возвращает в ответе нужное количество '
+        f'{index}:{expected_answer['length']}.'
     )
     if expected_answer['status'] == 200:
         status_redis, body_redis, timestamp_redis = await make_get_request(
@@ -40,7 +41,8 @@ async def test_films_search(
         )
         assert len(body_redis) == expected_answer['length'], (
             f'Проверьте, что get-запрос в Redis к `/api/v1/{endpoint}` '
-            f'возвращает в ответе нужное количество {expected_answer['length']}.'
+            'возвращает в ответе нужное количество '
+            f'{index}:{expected_answer['length']}.'
         )
         assert body == body_redis, (
             f'Проверьте, что get-запрос в Redis к `/api/v1/{endpoint}` '

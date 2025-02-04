@@ -9,12 +9,12 @@ from functional.testdata.etl_indexes.persons_indexes import (
 from tests.functional.testdata.es_generate.film_generate import (
     generate_films
 )
-from tests.functional.testdata.es_generate.genre_generate import (
+from tests.functional.testdata.es_generate.person_generate import (
     generate_persons
 )
 
 FILMS_PARAM = [
-    'films',
+    'movies',
     'films/search/',
     generate_films(),
     MOVIES_INDEX_MAPPING
@@ -33,6 +33,14 @@ SEARCH_PARAM = [
         {'status': HTTPStatus.OK, 'length': 50},       
     ]+FILMS_PARAM,
     [
+        {'query': 'The Star', 'page_size': 60},
+        {'status': HTTPStatus.OK, 'length': 60},       
+    ]+FILMS_PARAM,
+    [
+        {'query': 'The Star', 'page_number': 2},
+        {'status': HTTPStatus.OK, 'length': 10},       
+    ]+FILMS_PARAM,
+    [
         {},
         {'status': HTTPStatus.OK, 'length': 50},
     ]+FILMS_PARAM,
@@ -43,6 +51,14 @@ SEARCH_PARAM = [
     [
         {'query': 'Tom Jerry'},
         {'status': HTTPStatus.OK, 'length': 50},
+    ]+PERSONS_PARAM,
+    [
+        {'query': 'Tom Jerry', 'page_size': 60},
+        {'status': HTTPStatus.OK, 'length': 60},
+    ]+PERSONS_PARAM,
+    [
+        {'query': 'Tom Jerry', 'page_number': 2},
+        {'status': HTTPStatus.OK, 'length': 10},
     ]+PERSONS_PARAM,
     [
         {},
