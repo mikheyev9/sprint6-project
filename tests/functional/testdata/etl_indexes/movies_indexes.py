@@ -1,4 +1,4 @@
-{
+MOVIES_INDEX_MAPPING = {
   "settings": {
     "refresh_interval": "1s",
     "analysis": {

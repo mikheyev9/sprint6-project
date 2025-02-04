@@ -1,32 +1,48 @@
-from functools import lru_cache
-from typing import Optional
+from typing import List
+import logging
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
-from fastapi import Depends
-from redis.asyncio import Redis
+from services.base_service import BaseService
+from models.genre import GenresDTO, GenreDTO
 
-from src.db.elastic import get_elastic
-from src.db.redis import get_redis
-from src.models.genre import GenreDTO, GenresDTO
+logger = logging.getLogger(__name__)
 
 
-class GenreService:
-    def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
-        self.redis = redis
-        self.elastic = elastic
+class GenreService(BaseService[GenresDTO]):
+    """Сервис для работы с жанрами в Elasticsearch."""
 
-    #Прописать получение жанров
-    async def get_genres(self) -> Optional[GenresDTO]:
-        pass
+    service_name = "genre"
+    page_size = 50
 
-    #Прописать получение жанра
-    async def get_by_id(self, genre_id: str) -> Optional[GenreDTO]:
-        pass
+    def __init__(self, elastic: AsyncElasticsearch):
+        super().__init__(elastic, index="genres", model=GenreDTO)
 
+    async def search(self) -> List[GenreDTO]:
+        """
+        Возвращает список всех жанров из Elasticsearch.
+        """
 
-@lru_cache()
-def get_genre_service(
-        redis: Redis = Depends(get_redis),
-        elastic: AsyncElasticsearch = Depends(get_elastic),
-) -> GenreService:
-    return GenreService(redis, elastic)
+        search_query = {
+            "size": self.page_size,
+            "query": {"match_all": {}}
+        }
+
+        try:
+            print(search_query)
+            response = await self.elastic.search(
+                index=self.index,
+                body=search_query
+            )
+            return [
+                self.model(
+                    **hit["_source"]
+                ) for hit in response["hits"]["hits"]
+            ]
+
+        except NotFoundError:
+            logger.warning("Жанры не найдены.")
+            return []
+
+        except Exception as e:
+            logger.error(f"Ошибка при запросе жанров из Elasticsearch: {e}")
+            return []
