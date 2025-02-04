@@ -13,7 +13,7 @@ class FilmDTO(UUIDMixin):
 class PersonDTO(UUIDMixin):
     """Модель информации о человеке."""
 
-    full_name: str = Field(default_factory=str)
+    full_name: str = Field(default_factory=str, examples=['Garry Wayne'])
 
 
 class PersonInfoDTO(PersonDTO):

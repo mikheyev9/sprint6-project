@@ -7,6 +7,7 @@ services:
     build:
       context: ./fastapi
       dockerfile: Dockerfile
+    restart: always
     env_file:
       - .env
     ports:
@@ -27,7 +28,7 @@ services:
     entrypoint: >
       sh -c "python3 /tests/functional/utils/wait_for_es.py
       && python3 /tests/functional/utils/wait_for_redis.py
-      && pytest /tests/functional/src"
+      && pytest -v"
     depends_on:
       - fastapi
 
