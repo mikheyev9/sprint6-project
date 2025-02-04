@@ -15,29 +15,34 @@ async def test_films_search(
     await es_write_data(
         index, generate, map
     )
-    status, body_count, timestamp1 = await make_get_request(
+    status, body, timestamp = await make_get_request(
         endpoint, query_data
     )
     assert status == expected_answer['status'], (
         f'Проверьте, что get-запрос к `/api/v1/{endpoint}` '
         f'возвращает ответ с кодом {expected_answer['status']}.'
     )
-    assert body_count == expected_answer['length'], (
+    assert len(body) == expected_answer['length'], (
         f'Проверьте, что get-запрос к `/api/v1/{endpoint}` '
         f'возвращает в ответе нужное количество {expected_answer['length']}.'
     )
-    status, body_count, timestamp2 = await make_get_request(
-        endpoint, query_data
-    )
-    assert status == expected_answer['status'], (
-        f'Проверьте, что get-запрос к `/api/v1/{endpoint}` '
-        f'возвращает ответ с кодом {expected_answer['status']}.'
-    )
-    assert body_count == expected_answer['length'], (
-        f'Проверьте, что get-запрос к `/api/v1/{endpoint}` '
-        f'возвращает в ответе нужное количество {expected_answer['length']}.'
-    )
-    assert timestamp1 > timestamp2, (
-        f'Проверьте, что get-запрос к `/api/v1/{endpoint}` '
-        f'возвращает ответ из кеш Redis.'
-    )
+    if expected_answer['status'] == 200:
+        status_redis, body_redis, timestamp_redis = await make_get_request(
+            endpoint, query_data
+        )
+        assert timestamp > timestamp_redis, (
+            f'Проверьте, что get-запрос к `/api/v1/{endpoint}` '
+            f'возвращает ответ из кеш Redis.'
+        )
+        assert status_redis == expected_answer['status'], (
+            f'Проверьте, что get-запрос в Redis к `/api/v1/{endpoint}` '
+            f'возвращает ответ с кодом {expected_answer['status']}.'
+        )
+        assert len(body_redis) == expected_answer['length'], (
+            f'Проверьте, что get-запрос в Redis к `/api/v1/{endpoint}` '
+            f'возвращает в ответе нужное количество {expected_answer['length']}.'
+        )
+        assert body == body_redis, (
+            f'Проверьте, что get-запрос в Redis к `/api/v1/{endpoint}` '
+            f'возвращает ответ, как в get-запросе в ElasticSearch.'
+        )

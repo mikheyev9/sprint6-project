@@ -33,7 +33,7 @@ async def aiohttp_client():
 
 
 @pytest_asyncio.fixture(name='redis_client', scope='session')
-async def redis__client():
+async def redis_client():
     redis_client = aioredis.from_url(test_settings.redis_dsn)
     yield redis_client
     await redis_client.aclose()
@@ -82,7 +82,7 @@ def make_get_request(aiohttp_client):
         ) as response:
             return (
                 response.status,
-                len(await response.json()),
+                await response.json(),
                 time.time() - time_start
             )
     return inner
