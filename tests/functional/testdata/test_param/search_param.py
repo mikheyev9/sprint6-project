@@ -33,6 +33,14 @@ SEARCH_PARAM = [
         {'status': HTTPStatus.OK, 'length': 50},       
     ]+FILMS_PARAM,
     [
+        {'query': 'The Star', 'page_size': 60},
+        {'status': HTTPStatus.OK, 'length': 60},       
+    ]+FILMS_PARAM,
+    [
+        {'query': 'The Star', 'page_number': 2},
+        {'status': HTTPStatus.OK, 'length': 10},       
+    ]+FILMS_PARAM,
+    [
         {},
         {'status': HTTPStatus.OK, 'length': 50},
     ]+FILMS_PARAM,
@@ -43,6 +51,14 @@ SEARCH_PARAM = [
     [
         {'query': 'Tom Jerry'},
         {'status': HTTPStatus.OK, 'length': 50},
+    ]+PERSONS_PARAM,
+    [
+        {'query': 'Tom Jerry', 'page_size': 60},
+        {'status': HTTPStatus.OK, 'length': 60},
+    ]+PERSONS_PARAM,
+    [
+        {'query': 'Tom Jerry', 'page_number': 2},
+        {'status': HTTPStatus.OK, 'length': 10},
     ]+PERSONS_PARAM,
     [
         {},
