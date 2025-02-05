@@ -8,7 +8,7 @@ from .dto import AbstractDTO
 
 class GenreDTO(UUIDMixin):
     """Модель жанра"""
-    name: Optional[str] = Field(default=None)
+    name: Optional[str] = Field(default=None, examples=['Comedy'])
 
 
 class GenresDTO(AbstractDTO):
