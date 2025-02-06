@@ -1,4 +1,5 @@
 import asyncio
+import json
 import time
 
 import pytest_asyncio
@@ -53,7 +54,9 @@ def redis_clean(redis_client):
 
 @pytest_asyncio.fixture(name='es_write_data')
 def es_write_data(es_client):
-    async def inner(index: str, es_data: list[dict], model_index):
+    async def inner(index: str, file_data: str, model_index):
+        with open(f"functional/testdata/es_data/{file_data}", 'r') as f:
+            es_data = [row for row in json.loads(f.read())]
         data = [{'_index': index, '_id': row['id'], '_source': row} for row in es_data]
 
         if await es_client.indices.exists(index=index):

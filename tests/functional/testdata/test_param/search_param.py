@@ -6,38 +6,33 @@ from functional.testdata.etl_indexes.movies_indexes import (
 from functional.testdata.etl_indexes.persons_indexes import (
     PERSONS_INDEX_MAPPING
 )
-from tests.functional.testdata.es_generate.film_generate import (
-    generate_films
-)
-from tests.functional.testdata.es_generate.person_generate import (
-    generate_persons
-)
+
 
 FILMS_PARAM = [
     'movies',
     'films/search/',
-    generate_films(),
+    "films.json",
     MOVIES_INDEX_MAPPING
 ]
 
 PERSONS_PARAM = [
     'persons',
     'persons/search/',
-    generate_persons(),
+    "persons.json",
     PERSONS_INDEX_MAPPING
 ]
 
 SEARCH_PARAM = [
     [
-        {'query': 'The Star'},
+        {'query': 'Star'},
         {'status': HTTPStatus.OK, 'length': 50},       
     ]+FILMS_PARAM,
     [
-        {'query': 'The Star', 'page_size': 60},
+        {'query': 'Star', 'page_size': 60},
         {'status': HTTPStatus.OK, 'length': 60},       
     ]+FILMS_PARAM,
     [
-        {'query': 'The Star', 'page_number': 2},
+        {'query': 'Star', 'page_number': 2},
         {'status': HTTPStatus.OK, 'length': 10},       
     ]+FILMS_PARAM,
     [
@@ -49,16 +44,16 @@ SEARCH_PARAM = [
         {'status': HTTPStatus.NOT_FOUND, 'length': 1},
     ]+FILMS_PARAM,
     [
-        {'query': 'Tom Jerry'},
-        {'status': HTTPStatus.OK, 'length': 50},
+        {'query': 'Marya Gant'},
+        {'status': HTTPStatus.OK, 'length': 1},
     ]+PERSONS_PARAM,
     [
-        {'query': 'Tom Jerry', 'page_size': 60},
-        {'status': HTTPStatus.OK, 'length': 60},
+        {'query': 'M', 'page_size': 2},
+        {'status': HTTPStatus.OK, 'length': 2},
     ]+PERSONS_PARAM,
     [
-        {'query': 'Tom Jerry', 'page_number': 2},
-        {'status': HTTPStatus.OK, 'length': 10},
+        {'query': 'Michael', 'page_number': 2, 'page_size': 5},
+        {'status': HTTPStatus.OK, 'length': 3},
     ]+PERSONS_PARAM,
     [
         {},
