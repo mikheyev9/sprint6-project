@@ -2,6 +2,7 @@ import uuid
 from typing import List, Dict, Any
 from functional.utils.load_json import load_data_from_json
 
+
 def generate_person():
     return {
         'id': str(uuid.uuid4()),
