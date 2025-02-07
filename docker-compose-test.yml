@@ -1,5 +1,5 @@
 version: '3.8'
-name: Movie_theater - test
+name: movie_theater_test
 
 services:
   fastapi:

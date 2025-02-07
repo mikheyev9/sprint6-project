@@ -12,7 +12,7 @@ from functional.testdata.test_param.genre_param import GenresList # noqa
 
 
 def load_data_from_json(index: str) -> AbstractDTO:
-    file_path = f'tests/functional/json_data/{index}.json'
+    file_path = f'functional/json_data/{index}.json'
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
