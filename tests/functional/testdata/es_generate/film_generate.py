@@ -36,5 +36,3 @@ def generate_films():
 
 
 MOVIES_DATA: Dict[str, List[Dict[str, Any]]] = load_data_from_json('movies')
-
-

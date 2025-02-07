@@ -18,6 +18,6 @@ def generate_persons():
     return [generate_person() for _ in range(60)]
 
 
-MOVIES_PERSONS: Dict[str, List[Dict[str, Any]]] = load_data_from_json(
+PERSONS_DATA: Dict[str, List[Dict[str, Any]]] = load_data_from_json(
     'persons'
 )

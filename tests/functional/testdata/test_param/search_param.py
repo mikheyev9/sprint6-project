@@ -30,11 +30,11 @@ PERSONS_PARAM = [
 SEARCH_PARAM = [
     [
         {'query': 'The Star'},
-        {'status': HTTPStatus.OK, 'length': 50},    
+        {'status': HTTPStatus.OK, 'length': 50},
     ]+FILMS_PARAM,
     [
         {'query': 'The Star', 'page_size': 60},
-        {'status': HTTPStatus.OK, 'length': 60},     
+        {'status': HTTPStatus.OK, 'length': 60},
     ]+FILMS_PARAM,
     [
         {'query': 'The Star', 'page_number': 2},
