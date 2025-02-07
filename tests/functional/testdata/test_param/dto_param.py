@@ -3,8 +3,8 @@ from typing import Dict, Type
 from pydantic import BaseModel, ConfigDict
 
 
-class Biulder(ABC):
-    __subclasses: Dict[str, Type['Biulder']] = {}
+class Builder(ABC):
+    __subclasses: Dict[str, Type['Builder']] = {}
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
@@ -15,7 +15,7 @@ class Biulder(ABC):
         return cls.__subclasses
 
 
-class AbstractDTO(BaseModel, Biulder):
+class AbstractDTO(BaseModel, Builder):
     model_config = ConfigDict(
         from_attributes=True,
         populate_by_name=True,
