@@ -1,5 +1,6 @@
 import uuid
-
+from typing import List, Dict, Any
+from functional.utils.load_json import load_data_from_json
 
 def generate_person():
     return {
@@ -14,3 +15,8 @@ def generate_person():
 
 def generate_persons():
     return [generate_person() for _ in range(60)]
+
+
+MOVIES_PERSONS: Dict[str, List[Dict[str, Any]]] = load_data_from_json(
+    'persons'
+)

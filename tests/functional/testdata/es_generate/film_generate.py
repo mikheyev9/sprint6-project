@@ -1,4 +1,6 @@
 import uuid
+from typing import List, Dict, Any
+from functional.utils.load_json import load_data_from_json
 
 
 def generate_film():
@@ -31,3 +33,8 @@ def generate_film():
 
 def generate_films():
     return [generate_film() for _ in range(60)]
+
+
+MOVIES_DATA: Dict[str, List[Dict[str, Any]]] = load_data_from_json('movies')
+
+
