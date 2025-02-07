@@ -1,32 +1,7 @@
-from abc import ABC
-from typing import List, Optional, Type, Dict
-from pydantic import BaseModel, ConfigDict
+from typing import List, Optional
 
-
-class Biulder(ABC):
-    __subclasses: Dict[str, Type['Biulder']] = {}
-
-    def __init_subclass__(cls, **kwargs):
-        super().__init_subclass__(**kwargs)
-        cls.__subclasses[cls.__name__.lower()] = cls
-
-    @classmethod
-    def get_subclasses(cls):
-        return cls.__subclasses
-
-
-class AbstractDTO(BaseModel, Biulder):
-    model_config = ConfigDict(
-        from_attributes=True,
-        populate_by_name=True,
-        use_enum_values=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class Genre(AbstractDTO):
-    id: str
-    name: Optional[str]
+from .dto_param import AbstractDTO
+from .genre_param import Genre
 
 
 class Actor(AbstractDTO):
@@ -58,24 +33,5 @@ class Movie(AbstractDTO):
     writers: List[Writer]
 
 
-class PersonFilm(AbstractDTO):
-    id: str
-    roles: List[str]
-
-
 class MoviesList(AbstractDTO):
     movies: List[Movie]
-
-
-class Person(AbstractDTO):
-    id: str
-    full_name: Optional[str]
-    films: List[PersonFilm]
-
-
-class PersonsList(AbstractDTO):
-    persons: List[Person]
-
-
-class GenresList(AbstractDTO):
-    genres: List[Genre]
