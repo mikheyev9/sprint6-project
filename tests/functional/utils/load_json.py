@@ -1,9 +1,14 @@
 
 import json
 import logging
-from functional.testdata.test_param.film_param import (
+from functional.testdata.test_param.film_param import ( # noqa
     AbstractDTO,
+    MoviesList,
 )
+
+from functional.testdata.test_param.person_param import PersonsList # noqa
+
+from functional.testdata.test_param.genre_param import GenresList # noqa
 
 
 def load_data_from_json(index: str) -> AbstractDTO:
