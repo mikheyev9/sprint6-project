@@ -1,18 +1,17 @@
-from abc import ABC, abstractmethod
-from typing import Optional, TypeVar, Generic, Type, List
+from abc import abstractmethod
+from typing import Generic, Type, List
 from functools import lru_cache
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
-from pydantic import BaseModel
-T = TypeVar("T", bound=BaseModel)
+
+from services.abstract_service import SchemaType, AbstractService
 
 
-class BaseService(Generic[T], ABC):
+class BaseService(Generic[SchemaType], AbstractService):
     """
     Базовый сервис для работы с Elasticsearch.
     """
 
-    service_name: str
     _registry = {}
 
     def __init_subclass__(cls, **kwargs):
@@ -29,13 +28,13 @@ class BaseService(Generic[T], ABC):
     def __init__(
         self, elastic: AsyncElasticsearch,
         index: str,
-        model: Type[T]
+        model: Type[SchemaType]
     ):
         self.elastic = elastic
         self.index = index
         self.model = model
 
-    async def get_by_id(self, entity_id: str) -> Optional[T]:
+    async def get_by_id(self, entity_id: str) -> SchemaType | None:
         """
         Получает объект по ID из Elasticsearch.
         """
@@ -47,12 +46,16 @@ class BaseService(Generic[T], ABC):
             return None
 
     @abstractmethod
-    async def search(self, **kwargs) -> List[T]:
-        """
-        Поиск объектов в Elasticsearch. Cервисы должны реализовать этот метод.
-        """
-
-        pass
+    async def search(
+        self,
+        page_size: int = 50,
+        page_number: int = 1,
+        query: str | None = None,
+        *args,
+        **kwargs,
+    ) -> List[SchemaType]:
+        """Поиск объектов в БД."""
+        raise NotImplementedError
 
     @classmethod
     @lru_cache()
