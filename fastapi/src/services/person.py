@@ -1,7 +1,7 @@
 from typing import List, Optional
 import logging
 
-from elasticsearch import AsyncElasticsearch, NotFoundError
+from db.abstract_db import AbstractDB
 from models.person import PersonInfoDTO
 from services.base_service import BaseService
 
@@ -13,8 +13,8 @@ class PersonService(BaseService[PersonInfoDTO]):
 
     service_name = "person"
 
-    def __init__(self, elastic: AsyncElasticsearch):
-        super().__init__(elastic, index="persons", model=PersonInfoDTO)
+    def __init__(self, search_db: AbstractDB):
+        super().__init__(search_db, index="persons", model=PersonInfoDTO)
 
     async def search(
         self,
@@ -26,32 +26,21 @@ class PersonService(BaseService[PersonInfoDTO]):
         Выполняет поиск персон по имени.
         """
 
-        search_query = {
-            "size": page_size,
-            "from": (page_number - 1) * page_size,
-            "query": {"bool": {"must": []}}
-        }
+        search_query = {"bool": {"must": []}}
 
         if query:
             search_query["query"]["bool"]["must"].append(
                 {"multi_match": {"query": query, "fields": ["full_name"]}}
             )
 
-        try:
-            response = await self.elastic.search(
-                index=self.index,
-                body=search_query
-            )
-            return [
-                self.model(
-                    **hit["_source"]
-                ) for hit in response["hits"]["hits"]
-            ]
-
-        except NotFoundError:
-            logger.warning(f"Персоны не найдены. Запрос: query={query}")
-            return []
-
-        except Exception as e:
-            logger.error(f"Ошибка при запросе к Elasticsearch: {e}")
-            return []
+        response = await self.search_db.search(
+            table=self.index,
+            query=search_query,
+            limit=page_size,
+            offset=(page_number - 1) * page_size,
+        )
+        return [
+            self.model(
+                **hit["_source"]
+            ) for hit in response["hits"]["hits"]
+        ]

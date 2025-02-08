@@ -1,8 +1,7 @@
 import logging
 from typing import List, Optional
 
-from elasticsearch import AsyncElasticsearch, NotFoundError, TransportError
-
+from db.abstract_db import AbstractDB
 from services.base_service import BaseService
 from models.film import MovieInfoDTO, MovieBaseDTO
 
@@ -12,8 +11,8 @@ logger = logging.getLogger(__name__)
 class FilmService(BaseService[MovieInfoDTO]):
     service_name = 'film'
 
-    def __init__(self, elastic: AsyncElasticsearch):
-        super().__init__(elastic, index="movies", model=MovieInfoDTO)
+    def __init__(self, search_db: AbstractDB):
+        super().__init__(search_db, index="movies", model=MovieInfoDTO)
 
     async def search(
         self,
@@ -28,13 +27,7 @@ class FilmService(BaseService[MovieInfoDTO]):
         с поддержкой фильтрации, сортировки и пагинации.
         """
 
-        search_query = {
-            "size": page_size,
-            "from": (page_number - 1) * page_size,
-            "sort": [{sort: "desc"}],
-            "query": {"bool": {}}
-        }
-
+        search_query = {"bool": {}}
         must_conditions = []
         filter_conditions = []
 
@@ -58,26 +51,20 @@ class FilmService(BaseService[MovieInfoDTO]):
             })
 
         if must_conditions:
-            search_query["query"]["bool"]["must"] = must_conditions
+            search_query["bool"]["must"] = must_conditions
 
         if filter_conditions:
-            search_query["query"]["bool"]["filter"] = filter_conditions
+            search_query["bool"]["filter"] = filter_conditions
 
-        try:
-            response = await self.elastic.search(
-                index=self.index,
-                body=search_query
-            )
-            return [
-                MovieBaseDTO(
-                    **hit["_source"]
-                ) for hit in response["hits"]["hits"]
-            ]
-
-        except NotFoundError:
-            logger.warning(f"Фильмы не найдены: genre={genre}, query={query}")
-            return []
-
-        except TransportError as e:
-            logger.error(f"Ошибка запроса к Elasticsearch: {e}")
-            return []
+        response = await self.search_db.search(
+            table=self.index,
+            query=search_query,
+            offset=(page_number - 1) * page_size,
+            limit=page_size,
+            sort=[{sort: "desc"}],
+        )
+        return [
+            MovieBaseDTO(
+                **hit["_source"]
+            ) for hit in response["hits"]["hits"]
+        ]
