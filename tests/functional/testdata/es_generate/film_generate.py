@@ -1,9 +1,6 @@
 import uuid
 from typing import List, Dict, Any
 from functional.utils.load_json import load_data_from_json
-import logging
-
-logging.basicConfig(level=logging.INFO)
 
 
 def generate_film():
