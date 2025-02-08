@@ -39,5 +39,3 @@ def generate_films():
 
 
 MOVIES_DATA: Dict[str, List[Dict[str, Any]]] = load_data_from_json('movies')
-logging.info(type(MOVIES_DATA))
-logging.info(f"Полученные данные фильмов: {MOVIES_DATA.get('movies') if MOVIES_DATA else 'Класс не был создан'}")

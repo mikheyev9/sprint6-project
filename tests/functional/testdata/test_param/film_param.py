@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 
 from .dto_param import AbstractDTO
 from .genre_param import Genre
@@ -6,25 +6,25 @@ from .genre_param import Genre
 
 class Actor(AbstractDTO):
     id: str
-    full_name: Optional[str]
+    full_name: str | None
 
 
 class Director(AbstractDTO):
     id: str
-    full_name: Optional[str]
+    full_name: str | None
 
 
 class Writer(AbstractDTO):
     id: str
-    full_name: Optional[str]
+    full_name: str | None
 
 
 class Movie(AbstractDTO):
     id: str
-    imdb_rating: Optional[float]
+    imdb_rating: float | None
     genre: List[Genre]
-    title: Optional[str]
-    description: Optional[str]
+    title: str | None
+    description: str | None
     directors_names: List[str]
     actors_names: List[str]
     writers_names: List[str]
