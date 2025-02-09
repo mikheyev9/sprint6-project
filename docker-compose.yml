@@ -38,22 +38,23 @@ services:
     volumes:
       - redis_data:/data
   
-  tests:
-    build:
-      context: ./tests
-      dockerfile: Dockerfile
-    container_name: tests
-    volumes:
-      - ./tests:/opt/app/tests:ro
-    env_file:
-      - ./tests/.env
-    entrypoint: >
-      sh -c "python3 /tests/functional/utils/wait_for_es.py
-      && python3 /tests/functional/utils/wait_for_redis.py
-      && pytest -v
-      && tail -f /dev/null"
-    depends_on:
-      - fastapi
+  # tests:
+  #   build:
+  #     context: ./tests
+  #     dockerfile: Dockerfile
+  #   container_name: tests
+  #   volumes:
+  #     - ./tests:/opt/app/tests:ro
+  #   env_file:
+  #     - ./tests/.env
+  #   entrypoint: >
+  #     sh -c "python3 /tests/functional/utils/wait_for_es.py
+  #     && python3 /tests/functional/utils/wait_for_redis.py
+  #     && python /tests/functional/utils/load_into_el.py
+  #     && pytest -v
+  #     && tail -f /dev/null"
+  #   depends_on:
+  #     - fastapi
 
   elasticsearch:
     image: elasticsearch:8.7.0

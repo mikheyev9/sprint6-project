@@ -14,7 +14,6 @@ MOVIES_IMDB_RATING = [movie['imdb_rating'] for movie in MOVIES]
 @pytest.mark.parametrize("movie_id", [None, "недействительный_id", 99999])
 async def test_film_validation(make_get_request, movie_id):
     """Тестирование валидации фильма для различных входных значений."""
-
     url = (
         f"{MOVIES_URL}/{movie_id}"
         if movie_id is not None
@@ -84,8 +83,9 @@ async def test_get_all_movies(make_get_request):
         "Количество возвращаемых фильмов не совпадает с длиной набора данных.")
 
 
-async def test_cache_behavior(make_get_request, redis_client):
+async def test_cache_behavior(make_get_request, redis_clean):
     """ Тестирование кэша при одинаковм запросе. """
+    await redis_clean()
     existing_movie = MOVIES[0]
 
     response_first_status, json_response_first, timestamp = (
