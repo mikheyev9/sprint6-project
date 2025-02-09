@@ -2,12 +2,12 @@ import json
 import os
 from elasticsearch import Elasticsearch
 
+
 def export_elasticsearch_data():
     es_host = 'http://localhost:9200'
     indices = ['genres', 'movies', 'persons']
     es = Elasticsearch([es_host])
-    
-    # Создаем каталог, если он не существует
+
     output_dir = 'tests/functional/json_data'
     os.makedirs(output_dir, exist_ok=True)
 

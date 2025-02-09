@@ -3,12 +3,13 @@ from http import HTTPStatus
 from uuid import uuid4
 import pytest
 from functional.testdata.es_generate.film_generate import MOVIES_DATA
+from uuid import UUID
 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', encoding='utf-8')
 logger = logging.getLogger(__name__)
 
-MOVIES_URL = '/films'
+MOVIES_URL = 'films'
 MOVIES: list[dict] = MOVIES_DATA.get('movies')
 
 MOVIES_TITLE: list[str] = list(map(lambda movie: movie['title'], MOVIES))
@@ -33,10 +34,10 @@ async def test_film_validation(make_get_request, movie_id):
 async def test_film_search_existing_id(make_get_request):
     existing_movie = MOVIES[0]
     logger.info(f"Поиск существующего фильма по ID: {existing_movie['id']}")
+
     response_status, json_response, _ = await make_get_request(
-        MOVIES_URL,
-        {'id': existing_movie["id"]}
-    )
+        MOVIES_URL + "/" + existing_movie["id"]),
+    logger.info(f'URL запроса: {MOVIES_URL + "/" + existing_movie["id"]}')
     logger.info(f"Статус ответа: {response_status}, Тело ответа: {json_response}")
     assert response_status == HTTPStatus.OK
     assert json_response == existing_movie
@@ -70,7 +71,7 @@ async def test_get_all_movies(make_get_request):
     response_status, json_response, _ = await make_get_request(MOVIES_URL)
     logger.info(f"Статус ответа: {response_status}, Тело ответа: {json_response}")
     assert response_status == HTTPStatus.OK
-    assert len(json_response) == len(MOVIES)
+    assert len(json_response) == len(MOVIES[:50])
 
 
 async def test_cache_behavior(make_get_request, redis_client):
@@ -78,7 +79,7 @@ async def test_cache_behavior(make_get_request, redis_client):
     logger.info(f"Тестирование поведения кэша для ID фильма: {existing_movie['id']}")
 
     response_first_status, json_response_first, _ = await make_get_request(
-        MOVIES_URL + "/" + existing_movie["id"],
+        MOVIES_URL + "/" + UUID(existing_movie["id"]),
     )
     logger.info(f"Первый статус ответа: {response_first_status}, Тело ответа: {json_response_first}")
     assert response_first_status == HTTPStatus.OK
@@ -86,7 +87,7 @@ async def test_cache_behavior(make_get_request, redis_client):
 
     response_second_status, json_response_second, _ = await make_get_request(
         MOVIES_URL,
-        {'id': existing_movie["id"]}
+        {'id': UUID(existing_movie["id"])}
     )
     logger.info(f"Второй статус ответа: {response_second_status}, Тело ответа: {json_response_second}")
     assert response_second_status == HTTPStatus.OK
