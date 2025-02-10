@@ -3,8 +3,7 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from contextlib import asynccontextmanager
 
-
-from db.redis_cache import RedisCache
+from db.redis_cache import RedisCacheManager
 from api.routers import main_router
 from core.config import settings
 
@@ -14,10 +13,9 @@ async def lifespan(app: FastAPI):
     """Управление ресурсами FastAPI"""
 
     elastic_client = None
-
+    redis_cache_manager = RedisCacheManager(settings)
     try:
-        redis_cache = RedisCache(settings)
-        await redis_cache.connect()
+        await redis_cache_manager.setup()
 
         elastic_client = AsyncElasticsearch(hosts=[settings.elasticsearch_dsn])
         app.state.elastic = elastic_client
@@ -26,7 +24,7 @@ async def lifespan(app: FastAPI):
 
     finally:
 
-        await redis_cache.close()
+        await redis_cache_manager.tear_down()
 
         if elastic_client:
             await elastic_client.close()
