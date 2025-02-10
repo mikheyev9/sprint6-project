@@ -81,4 +81,4 @@ class ElasticDAO(AbstractDAO):
 
 async def get_elastic(request: Request) -> ElasticDAO:
     """Получение объекта ElasticSearchDB."""
-    return ElasticDAO(request.app.state.elastic)
+    return request.app.state.elastic
