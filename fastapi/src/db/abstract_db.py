@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from fastapi import Request
 
 
 class AbstractDAO(ABC):
@@ -19,3 +20,11 @@ class AbstractDAO(ABC):
     ):
         """Поиск объектов в таблице."""
         raise NotImplementedError
+
+
+def get_db(request: Request) -> AbstractDAO:
+    """
+    Возвращает экземпляр DAO, сохранённый в app.state.
+    """
+    
+    return request.app.state.db
