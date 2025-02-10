@@ -41,33 +41,6 @@ services:
       - "6379"
     restart: always
 
-  theatre-db:
-    image: postgres:16
-    container_name: theatre-db
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_PASSWORD=qwerty1234
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=project_collection
-    restart: always
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./database/database_dump.sql:/docker-entrypoint-initdb.d/init.sql
-
-  # etl:
-  #   build:
-  #     context: ./elastic
-  #     dockerfile: Dockerfile
-  #   container_name: etl
-  #   restart: always
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     - theatre-db
-  #     - elasticsearch
-  #     - redis
-
   elasticsearch:
     image: elasticsearch:8.7.0
     container_name: elasticsearch
@@ -81,6 +54,5 @@ services:
 
 
 volumes:
-  postgres_data:
   elasticsearch:
   redis_data:

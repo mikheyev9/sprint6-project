@@ -34,5 +34,8 @@ def generate_film():
 def generate_films():
     return [generate_film() for _ in range(60)]
 
+#  Генерацию функции не стал убирать, чтобы если что вдруг сравнить формат к
+#  и если все ок то убрать(вдруг я где то косякнул))
+
 
 MOVIES_DATA: Dict[str, List[Dict[str, Any]]] = load_data_from_json('movies')

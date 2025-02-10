@@ -8,11 +8,8 @@ from redis import asyncio as aioredis
 
 import aiohttp
 from elasticsearch import AsyncElasticsearch
-from elasticsearch.helpers import async_bulk
 
 from functional.settings import test_settings
-
-logger = logging.getLogger(__name__)
 
 
 @pytest_asyncio.fixture(scope='session')
@@ -54,37 +51,11 @@ def redis_clean(redis_client):
         print(f"Redis готов к тестам. Кол-во ключей:{count_keys}.")
     return inner
 
-
-@pytest_asyncio.fixture(name='es_write_data')
-def es_write_data(es_client):
-    async def inner(index: str, es_data: list[dict], model_index):
-        data = [{'_index': index, '_id': row['id'], '_source': row} for row in es_data]
-
-        if await es_client.indices.exists(index=index):
-            await es_client.indices.delete(index=index)
-
-        await es_client.indices.create(index=index, **model_index)
-        updated, errors = await async_bulk(client=es_client, actions=data)
-
-        if errors:
-            print(f"Ошибка записи в Elasticsearch: {errors}")
-            raise Exception('Ошибка записи данных в Elasticsearch')
-
-        await es_client.indices.refresh(index=index)
-        count = await es_client.count(index=index)
-        print(f"Записано {count['count']} документов в индекс {index}")
-    return inner
-
-
 @pytest_asyncio.fixture(name='make_get_request')
 def make_get_request(aiohttp_client):
     async def inner(endpoint: str, query_data: dict = None):
         time_start = time.time()
-
-        # Логируем запрос
         url = f'{test_settings.service_url}/api/v1/{endpoint}'
-        logger.info(f"Отправка GET-запроса на URL: {url} с параметрами: {query_data}")
-
         async with aiohttp_client.get(url, params=query_data) as response:
             return (
                 response.status,

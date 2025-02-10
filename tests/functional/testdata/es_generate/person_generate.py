@@ -18,6 +18,10 @@ def generate_persons():
     return [generate_person() for _ in range(60)]
 
 
+#  Генерацию функции не стал убирать, чтобы если что вдруг сравнить формат к
+#  и если все ок то убрать(вдруг я где то косякнул))
+
+
 PERSONS_DATA: Dict[str, List[Dict[str, Any]]] = load_data_from_json(
     'persons'
 )
