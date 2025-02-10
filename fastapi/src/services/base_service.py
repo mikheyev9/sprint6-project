@@ -2,8 +2,10 @@ from abc import ABC, abstractmethod
 from typing import TypeVar, Generic, Type, List
 from functools import lru_cache
 
-from elasticsearch import AsyncElasticsearch, NotFoundError
 from pydantic import BaseModel
+
+from db.abstract_db import AbstractDAO
+
 T = TypeVar("T", bound=BaseModel)
 
 
@@ -27,11 +29,11 @@ class BaseService(Generic[T], ABC):
         BaseService._registry[cls.service_name] = cls
 
     def __init__(
-        self, elastic: AsyncElasticsearch,
+        self, db: AbstractDAO,
         index: str,
         model: Type[T]
     ):
-        self.elastic = elastic
+        self.db = db
         self.index = index
         self.model = model
 
@@ -39,17 +41,15 @@ class BaseService(Generic[T], ABC):
         """
         Получает объект по ID из Elasticsearch.
         """
-
-        try:
-            doc = await self.elastic.get(index=self.index, id=entity_id)
-            return self.model(**doc["_source"])
-        except NotFoundError:
-            return None
+        doc = await self.db.get(table=self.index, id_obj=entity_id)
+        if doc:
+            return self.model(**doc)
+        return None
 
     @abstractmethod
     async def search(self, **kwargs) -> List[T]:
         """
-        Поиск объектов в Elasticsearch. Cервисы должны реализовать этот метод.
+        Поиск объектов в Elasticsearch. Сервисы должны реализовать этот метод.
         """
 
         pass
@@ -59,10 +59,10 @@ class BaseService(Generic[T], ABC):
     def get_instance(
         cls,
         service_type: str,
-        elastic: AsyncElasticsearch
+        search_db: AbstractDAO,
     ) -> "BaseService":
         """Возвращает экземпляр сервиса, используя кэширование."""
         service_class = cls._registry.get(service_type)
         if service_class:
-            return service_class(elastic)
+            return service_class(search_db)
         raise ValueError(f"Unknown service type: {service_type}")

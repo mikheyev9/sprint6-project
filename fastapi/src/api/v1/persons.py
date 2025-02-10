@@ -78,7 +78,7 @@ async def search_person(
     persons = await person_service.search(
         page_number=page_number,
         page_size=page_size,
-        query=query,
+        full_name=query,
     )
     if not persons:
         raise HTTPException(
