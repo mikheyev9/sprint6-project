@@ -19,37 +19,64 @@ class ElasticDAO(AbstractDAO):
         """Получение объекта по id."""
         try:
             doc = await self.elastic.get(index=table, id=id_obj)
+            return doc.get("_source")
         except NotFoundError:
             logger.warning(f"Объект в {table} не найден: id={id_obj}")
-            return None
-        return doc.get("_source")
+        except TransportError as e:
+            logger.error(
+                f"При запросе id={id_obj} к {table} произошла ошибка: {e}"
+            )
+        return None
 
     async def search(
             self, table: str,
-            query: dict[str, any],
             offset: int = 0,
             limit: int = 50,
             sort: list[dict[str, str]] | None = None,
+            filters: dict[str, any] | None = None,
     ):
         """Поиск объектов в таблице."""
+        must_conditions = []
+        filter_conditions = []
         search_query = {
             "size": limit,
             "from": offset,
-            "query": query,
+            "query": {"bool": {"must": []}},
         }
+
+        for key, value in filters.items():
+            if key.count(".") == 1:
+                path = key.split(".")[0]
+                filter_conditions.append({
+                    "nested": {
+                        "path": path, "query": {
+                            "bool": {"must": [{"match": {key: value}}]}
+                        }
+                    }
+                })
+            if key.count(".") == 0:
+                must_conditions.append({
+                    "multi_match": {"query": value, "fields": [key]}
+                })
+
+        if must_conditions:
+            search_query["query"]["bool"]["must"] = must_conditions
+
+        if filter_conditions:
+            search_query["query"]["bool"]["filter"] = filter_conditions
+
         if sort:
             search_query["sort"] = sort
         try:
             response = await self.elastic.search(index=table, body=search_query)
             return [hit["_source"] for hit in response["hits"]["hits"]]
         except NotFoundError:
-            logger.warning(f"Объекты в {table} не найдены: query={query}")
-            return []
+            logger.warning(f"Объекты в {table} не найдены: query={search_query}")
         except TransportError as e:
             logger.error(
-                f"При запросе {query} к {table} произошла ошибка: {e}"
+                f"При запросе {search_query} к {table} произошла ошибка: {e}"
             )
-            return []
+        return []
 
 
 async def get_elastic(request: Request) -> ElasticDAO:

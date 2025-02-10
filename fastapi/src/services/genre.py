@@ -21,12 +21,8 @@ class GenreService(BaseService[GenresDTO]):
         """
         Возвращает список всех жанров из Elasticsearch.
         """
-
-        search_query = {"match_all": {}}
-
         response = await self.db.search(
             table=self.index,
-            query=search_query,
             limit=self.page_size,
         )
         return [GenreDTO(**hit) for hit in response]

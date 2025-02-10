@@ -20,23 +20,18 @@ class PersonService(BaseService[PersonInfoDTO]):
         self,
         page_size: int = 50,
         page_number: int = 1,
-        query: Optional[str] = None
+        full_name: Optional[str] = None
     ) -> List[PersonInfoDTO]:
         """
         Выполняет поиск персон по имени.
         """
-
-        search_query = {"bool": {"must": []}}
-
-        if query:
-            search_query["bool"]["must"].append(
-                {"multi_match": {"query": query, "fields": ["full_name"]}}
-            )
-
+        filters = {}
+        if full_name:
+            filters["full_name"] = full_name
         response = await self.db.search(
             table=self.index,
-            query=search_query,
             limit=page_size,
             offset=(page_number - 1) * page_size,
+            filters=filters,
         )
         return [self.model(**hit) for hit in response]

@@ -64,7 +64,7 @@ async def search_films(
     films = await film_service.search(
         page_number=page_number,
         page_size=page_size,
-        query=query,
+        title=query,
     )
     if not films:
         raise HTTPException(

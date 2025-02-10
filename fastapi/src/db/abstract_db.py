@@ -12,10 +12,10 @@ class AbstractDAO(ABC):
     @abstractmethod
     async def search(
             self, table: str,
-            query: dict[str, any],
             offset: int = 0,
             limit: int = 50,
             sort: list[dict[str, str]] | None = None,
+            filters: dict[str, any] | None = None,
     ):
         """Поиск объектов в таблице."""
         raise NotImplementedError
