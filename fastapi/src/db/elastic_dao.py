@@ -3,12 +3,12 @@ import logging
 from fastapi import Request
 from elasticsearch import AsyncElasticsearch, NotFoundError, TransportError
 
-from db.abstract_db import AbstractDB
+from db.abstract_db import AbstractDAO
 
 logger = logging.getLogger(__name__)
 
 
-class ElasticDB(AbstractDB):
+class ElasticDAO(AbstractDAO):
     """Класс для работы с Elasticsearch."""
 
     def __init__(self, elastic: AsyncElasticsearch):
@@ -52,6 +52,6 @@ class ElasticDB(AbstractDB):
             return []
 
 
-async def get_elastic(request: Request) -> ElasticDB:
+async def get_elastic(request: Request) -> ElasticDAO:
     """Получение объекта ElasticSearchDB."""
-    return ElasticDB(request.app.state.elastic)
+    return ElasticDAO(request.app.state.elastic)

@@ -1,7 +1,7 @@
 from typing import List, Optional
 import logging
 
-from db.abstract_db import AbstractDB
+from db.abstract_db import AbstractDAO
 from models.person import PersonInfoDTO
 from services.base_service import BaseService
 
@@ -13,7 +13,7 @@ class PersonService(BaseService[PersonInfoDTO]):
 
     service_name = "person"
 
-    def __init__(self, search_db: AbstractDB):
+    def __init__(self, search_db: AbstractDAO):
         super().__init__(search_db, index="persons", model=PersonInfoDTO)
 
     async def search(
@@ -33,7 +33,7 @@ class PersonService(BaseService[PersonInfoDTO]):
                 {"multi_match": {"query": query, "fields": ["full_name"]}}
             )
 
-        response = await self.search_db.search(
+        response = await self.db.search(
             table=self.index,
             query=search_query,
             limit=page_size,

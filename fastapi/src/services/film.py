@@ -1,7 +1,7 @@
 import logging
 from typing import List, Optional
 
-from db.abstract_db import AbstractDB
+from db.abstract_db import AbstractDAO
 from services.base_service import BaseService
 from models.film import MovieInfoDTO, MovieBaseDTO
 
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 class FilmService(BaseService[MovieInfoDTO]):
     service_name = 'film'
 
-    def __init__(self, search_db: AbstractDB):
+    def __init__(self, search_db: AbstractDAO):
         super().__init__(search_db, index="movies", model=MovieInfoDTO)
 
     async def search(
@@ -56,7 +56,7 @@ class FilmService(BaseService[MovieInfoDTO]):
         if filter_conditions:
             search_query["bool"]["filter"] = filter_conditions
 
-        response = await self.search_db.search(
+        response = await self.db.search(
             table=self.index,
             query=search_query,
             offset=(page_number - 1) * page_size,

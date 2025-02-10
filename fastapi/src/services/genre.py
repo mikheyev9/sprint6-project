@@ -1,7 +1,7 @@
 from typing import List
 import logging
 
-from db.abstract_db import AbstractDB
+from db.abstract_db import AbstractDAO
 from services.base_service import BaseService
 from models.genre import GenresDTO, GenreDTO
 
@@ -14,7 +14,7 @@ class GenreService(BaseService[GenresDTO]):
     service_name = "genre"
     page_size = 50
 
-    def __init__(self, search_db: AbstractDB):
+    def __init__(self, search_db: AbstractDAO):
         super().__init__(search_db, index="genres", model=GenreDTO)
 
     async def search(self) -> List[GenreDTO]:
@@ -24,7 +24,7 @@ class GenreService(BaseService[GenresDTO]):
 
         search_query = {"match_all": {}}
 
-        response = await self.search_db.search(
+        response = await self.db.search(
             table=self.index,
             query=search_query,
             limit=self.page_size,

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
 
-class AbstractDB(ABC):
+class AbstractDAO(ABC):
     """Базовый класс для поиска в БД."""
 
     @abstractmethod

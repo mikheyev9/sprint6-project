@@ -4,7 +4,7 @@ from functools import lru_cache
 
 from pydantic import BaseModel
 
-from db.abstract_db import AbstractDB
+from db.abstract_db import AbstractDAO
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -29,11 +29,11 @@ class BaseService(Generic[T], ABC):
         BaseService._registry[cls.service_name] = cls
 
     def __init__(
-        self, search_db: AbstractDB,
+        self, db: AbstractDAO,
         index: str,
         model: Type[T]
     ):
-        self.search_db = search_db
+        self.db = db
         self.index = index
         self.model = model
 
@@ -41,7 +41,7 @@ class BaseService(Generic[T], ABC):
         """
         Получает объект по ID из Elasticsearch.
         """
-        doc = await self.search_db.get(table=self.index, id_obj=entity_id)
+        doc = await self.db.get(table=self.index, id_obj=entity_id)
         if doc:
             return self.model(**doc)
         return None
@@ -59,7 +59,7 @@ class BaseService(Generic[T], ABC):
     def get_instance(
         cls,
         service_type: str,
-        search_db: AbstractDB,
+        search_db: AbstractDAO,
     ) -> "BaseService":
         """Возвращает экземпляр сервиса, используя кэширование."""
         service_class = cls._registry.get(service_type)
