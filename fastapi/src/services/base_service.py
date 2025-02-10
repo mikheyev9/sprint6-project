@@ -1,17 +1,20 @@
-from abc import abstractmethod
-from typing import Generic, Type, List
+from abc import ABC, abstractmethod
+from typing import TypeVar, Generic, Type, List
 from functools import lru_cache
 
-from elasticsearch import AsyncElasticsearch, NotFoundError
+from pydantic import BaseModel
 
-from services.abstract_service import SchemaType, AbstractService
+from db.abstract_db import AbstractDAO
+
+T = TypeVar("T", bound=BaseModel)
 
 
-class BaseService(Generic[SchemaType], AbstractService):
+class BaseService(Generic[T], ABC):
     """
     Базовый сервис для работы с Elasticsearch.
     """
 
+    service_name: str
     _registry = {}
 
     def __init_subclass__(cls, **kwargs):
@@ -26,46 +29,40 @@ class BaseService(Generic[SchemaType], AbstractService):
         BaseService._registry[cls.service_name] = cls
 
     def __init__(
-        self, elastic: AsyncElasticsearch,
+        self, db: AbstractDAO,
         index: str,
-        model: Type[SchemaType]
+        model: Type[T]
     ):
-        self.elastic = elastic
+        self.db = db
         self.index = index
         self.model = model
 
-    async def get_by_id(self, entity_id: str) -> SchemaType | None:
+    async def get_by_id(self, entity_id: str) -> T | None:
         """
         Получает объект по ID из Elasticsearch.
         """
-
-        try:
-            doc = await self.elastic.get(index=self.index, id=entity_id)
-            return self.model(**doc["_source"])
-        except NotFoundError:
-            return None
+        doc = await self.db.get(table=self.index, id_obj=entity_id)
+        if doc:
+            return self.model(**doc)
+        return None
 
     @abstractmethod
-    async def search(
-        self,
-        page_size: int = 50,
-        page_number: int = 1,
-        query: str | None = None,
-        *args,
-        **kwargs,
-    ) -> List[SchemaType]:
-        """Поиск объектов в БД."""
-        raise NotImplementedError
+    async def search(self, **kwargs) -> List[T]:
+        """
+        Поиск объектов в Elasticsearch. Сервисы должны реализовать этот метод.
+        """
+
+        pass
 
     @classmethod
     @lru_cache()
     def get_instance(
         cls,
         service_type: str,
-        elastic: AsyncElasticsearch
+        search_db: AbstractDAO,
     ) -> "BaseService":
         """Возвращает экземпляр сервиса, используя кэширование."""
         service_class = cls._registry.get(service_type)
         if service_class:
-            return service_class(elastic)
+            return service_class(search_db)
         raise ValueError(f"Unknown service type: {service_type}")

@@ -1,4 +1,6 @@
 import asyncio
+import logging
+
 import time
 
 import pytest_asyncio
@@ -9,6 +11,8 @@ from elasticsearch import AsyncElasticsearch
 from elasticsearch.helpers import async_bulk
 
 from functional.settings import test_settings
+
+logger = logging.getLogger(__name__)
 
 
 @pytest_asyncio.fixture(scope='session')
@@ -76,10 +80,12 @@ def es_write_data(es_client):
 def make_get_request(aiohttp_client):
     async def inner(endpoint: str, query_data: dict = None):
         time_start = time.time()
-        async with aiohttp_client.get(
-            f'{test_settings.service_url}/api/v1/{endpoint}',
-            params=query_data
-        ) as response:
+
+        # Логируем запрос
+        url = f'{test_settings.service_url}/api/v1/{endpoint}'
+        logger.info(f"Отправка GET-запроса на URL: {url} с параметрами: {query_data}")
+
+        async with aiohttp_client.get(url, params=query_data) as response:
             return (
                 response.status,
                 await response.json(),
