@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 
 from pydantic import Field
 
@@ -8,7 +8,7 @@ from .dto import AbstractDTO
 
 class GenreDTO(UUIDMixin):
     """Модель жанра"""
-    name: Optional[str] = Field(default=None)
+    name: str | None = Field(default=None, examples=['Comedy'])
 
 
 class GenresDTO(AbstractDTO):

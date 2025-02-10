@@ -1,31 +1,32 @@
 version: '3.8'
-name: Movie_theater
+name: movie_theater
 
 services:
-  etl:
-    build:
-      context: ./elastic
-      dockerfile: Dockerfile
-    container_name: etl
-    restart: always
-    env_file:
-      - .env
-    ports:
-      - 8000:8000
-    depends_on:
-      - theatre-db
-      - elasticsearch
-      - redis
+  # etl:
+  #   build:
+  #     context: ./elastic
+  #     dockerfile: Dockerfile
+  #   container_name: etl
+  #   restart: always
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - theatre-db
+  #     - elasticsearch
+  #     - redis
 
   fastapi:
     image: fastapi-image
     build:
       context: ./fastapi
       dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 8000:8000
     env_file:
       - .env
     depends_on:
-      - etl
+      #- etl
       - redis
 
   redis:
@@ -36,6 +37,24 @@ services:
     restart: always
     volumes:
       - redis_data:/data
+  
+  # tests:
+  #   build:
+  #     context: ./tests
+  #     dockerfile: Dockerfile
+  #   container_name: tests
+  #   volumes:
+  #     - ./tests:/opt/app/tests:ro
+  #   env_file:
+  #     - ./tests/.env
+  #   entrypoint: >
+  #     sh -c "python3 /tests/functional/utils/wait_for_es.py
+  #     && python3 /tests/functional/utils/wait_for_redis.py
+  #     && python /tests/functional/utils/load_into_el.py
+  #     && pytest -v
+  #     && tail -f /dev/null"
+  #   depends_on:
+  #     - fastapi
 
   elasticsearch:
     image: elasticsearch:8.7.0

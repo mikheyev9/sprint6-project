@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional, TypeVar, Generic, Type, List
+from typing import TypeVar, Generic, Type, List
 from functools import lru_cache
 
 from pydantic import BaseModel
@@ -37,7 +37,7 @@ class BaseService(Generic[T], ABC):
         self.index = index
         self.model = model
 
-    async def get_by_id(self, entity_id: str) -> Optional[T]:
+    async def get_by_id(self, entity_id: str) -> T | None:
         """
         Получает объект по ID из Elasticsearch.
         """

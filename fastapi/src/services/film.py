@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import List
 
 from db.abstract_db import AbstractDAO
 from services.base_service import BaseService
@@ -16,11 +16,11 @@ class FilmService(BaseService[MovieInfoDTO]):
 
     async def search(
         self,
-        genre: Optional[str] = None,
+        genre: str | None = None,
         page_size: int = 50,
         page_number: int = 1,
         sort: str = "imdb_rating",
-        title: Optional[str] = None
+        title: str | None = None
     ) -> List[MovieBaseDTO]:
         """
         Получает список фильмов из Elasticsearch

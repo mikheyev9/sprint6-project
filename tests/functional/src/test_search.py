@@ -2,6 +2,7 @@ import pytest
 
 from tests.functional.testdata.test_param.search_param import SEARCH_PARAM
 
+
 @pytest.mark.parametrize(
     'query_data, expected_answer, index, endpoint, generate, map',
     SEARCH_PARAM
@@ -10,7 +11,7 @@ from tests.functional.testdata.test_param.search_param import SEARCH_PARAM
 async def test_films_search(
     es_write_data, make_get_request, redis_clean,
     query_data, expected_answer, index, endpoint, generate, map
-): 
+):
     await redis_clean()
     await es_write_data(
         index, generate, map

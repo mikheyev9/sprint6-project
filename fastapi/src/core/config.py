@@ -1,5 +1,6 @@
 import os
 from logging import config as logging_config
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .logger import LOGGING
@@ -10,7 +11,26 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 class Settings(BaseSettings):
+    #FastAPI
     project_name: str
+    project_summary: str
+    project_version: str
+    project_terms_of_service: str
+    project_tags: list = Field([
+        {
+            "name": 'films',
+            "description": 'Operations with films.',
+        },
+        {
+            "name": 'genres',
+            "description": 'Operations with genres.',
+        },
+        {
+            "name": 'persons',
+            "description": 'Operations with persons.',
+        },
+    ])
+
 
     # Redis
     redis_host: str
