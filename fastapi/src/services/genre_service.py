@@ -1,5 +1,8 @@
+from http import HTTPStatus
 from typing import List
 import logging
+
+from fastapi import HTTPException
 
 from db.abstract_db import AbstractDAO
 from services.base_service import BaseService
@@ -25,4 +28,8 @@ class GenreService(BaseService[GenresDTO]):
             table=self.index,
             limit=self.page_size,
         )
+        if not response:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND, detail='genres not found'
+            )
         return [GenreDTO(**hit) for hit in response]

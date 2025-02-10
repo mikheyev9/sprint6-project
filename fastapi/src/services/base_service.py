@@ -1,15 +1,17 @@
 from abc import ABC, abstractmethod
+from http import HTTPStatus
 from typing import TypeVar, Generic, Type, List
 from functools import lru_cache
 
+from fastapi import HTTPException
 from pydantic import BaseModel
 
 from db.abstract_db import AbstractDAO
 
-T = TypeVar("T", bound=BaseModel)
+SchemaType = TypeVar("SchemaType", bound=BaseModel)
 
 
-class BaseService(Generic[T], ABC):
+class BaseService(Generic[SchemaType], ABC):
     """
     Базовый сервис для работы с Elasticsearch.
     """
@@ -31,23 +33,26 @@ class BaseService(Generic[T], ABC):
     def __init__(
         self, db: AbstractDAO,
         index: str,
-        model: Type[T]
+        model: Type[SchemaType]
     ):
         self.db = db
         self.index = index
         self.model = model
 
-    async def get_by_id(self, entity_id: str) -> T | None:
+    async def get_by_id(self, entity_id: str) -> SchemaType | None:
         """
         Получает объект по ID из Elasticsearch.
         """
         doc = await self.db.get(table=self.index, id_obj=entity_id)
-        if doc:
-            return self.model(**doc)
-        return None
+        if not doc:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND,
+                detail=f'{self.index} not found',
+            )
+        return self.model(**doc)
 
     @abstractmethod
-    async def search(self, **kwargs) -> List[T]:
+    async def search(self, **kwargs) -> List[SchemaType]:
         """
         Поиск объектов в Elasticsearch. Сервисы должны реализовать этот метод.
         """

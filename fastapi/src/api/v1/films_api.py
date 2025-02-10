@@ -1,10 +1,9 @@
-from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Response
+from fastapi import APIRouter, Depends, Path, Query, Request, Response
 
 from models.film import MovieInfoDTO, MovieBaseDTO
-from services.film import FilmService
+from services.film_service import FilmService
 from services.service_factory import service_for
 from fastapi_cache.decorator import cache
 
@@ -53,17 +52,12 @@ async def get_films(
     ] = 'imdb_rating',
     film_service: FilmService = Depends(service_for("film"))
  ) -> list[MovieBaseDTO]:
-    films = await film_service.search(
+    return await film_service.search(
         genre=genre,
         page_number=page_number,
         page_size=page_size,
         sort=sort
     )
-    if not films:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='films not found'
-        )
-    return films
 
 
 @router.get(
@@ -85,12 +79,7 @@ async def film_details(
     ],
     film_service: FilmService = Depends(service_for("film"))
 ) -> MovieInfoDTO:
-    film = await film_service.get_by_id(film_id)
-    if not film:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='film not found'
-        )
-    return film
+    return await film_service.get_by_id(film_id)
 
 
 @router.get(
@@ -128,13 +117,8 @@ async def search_films(
     ] = None,
     film_service: FilmService = Depends(service_for("film"))
 ) -> list[MovieBaseDTO]:
-    films = await film_service.search(
+    return await film_service.search(
         page_number=page_number,
         page_size=page_size,
         title=query,
     )
-    if not films:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='films not found'
-        )
-    return films

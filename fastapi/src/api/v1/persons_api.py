@@ -1,12 +1,11 @@
-from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Response
+from fastapi import APIRouter, Depends, Path, Query, Request, Response
 
 from models.person import PersonInfoDTO
 from models.film import MovieBaseDTO
-from services.film import FilmService
-from services.person import PersonService
+from services.film_service import FilmService
+from services.person_service import PersonService
 from services.service_factory import service_for
 from fastapi_cache.decorator import cache
 
@@ -32,12 +31,7 @@ async def person_details(
     response: Response,
     person_service: PersonService = Depends(service_for("person")),
 ) -> PersonInfoDTO:
-    person = await person_service.get_by_id(person_id)
-    if not person:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='person not found'
-        )
-    return person
+    return await person_service.get_by_id(person_id)
 
 
 @router.get(
@@ -75,16 +69,11 @@ async def search_person(
     ] = None,
     person_service: PersonService = Depends(service_for("person")),
 ) -> list[PersonInfoDTO]:
-    persons = await person_service.search(
+    return await person_service.search(
         page_number=page_number,
         page_size=page_size,
         full_name=query,
     )
-    if not persons:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='persons not found'
-        )
-    return persons
 
 
 @router.get(
@@ -108,9 +97,4 @@ async def get_films(
     film_service: FilmService = Depends(service_for("film"))
 ) -> list[MovieBaseDTO]:
     person = await person_service.get_by_id(person_id)
-
-    if not person:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='person not found'
-        )
     return [await film_service.get_by_id(film.id) for film in person.films]
