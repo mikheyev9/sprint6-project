@@ -6,10 +6,10 @@ from pydantic import BaseModel
 
 from db.abstract_db import AbstractDAO
 
-T = TypeVar("T", bound=BaseModel)
+SchemaType = TypeVar("SchemaType", bound=BaseModel)
 
 
-class BaseService(Generic[T], ABC):
+class BaseService(Generic[SchemaType], ABC):
     """
     Базовый сервис для работы с Elasticsearch.
     """
@@ -31,13 +31,13 @@ class BaseService(Generic[T], ABC):
     def __init__(
         self, db: AbstractDAO,
         index: str,
-        model: Type[T]
+        model: Type[SchemaType]
     ):
         self.db = db
         self.index = index
         self.model = model
 
-    async def get_by_id(self, entity_id: str) -> T | None:
+    async def get_by_id(self, entity_id: str) -> SchemaType | None:
         """
         Получает объект по ID из Elasticsearch.
         """
@@ -47,7 +47,7 @@ class BaseService(Generic[T], ABC):
         return None
 
     @abstractmethod
-    async def search(self, **kwargs) -> List[T]:
+    async def search(self, **kwargs) -> List[SchemaType]:
         """
         Поиск объектов в Elasticsearch. Сервисы должны реализовать этот метод.
         """
