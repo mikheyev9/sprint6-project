@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, Path, Query, Request, Response
 
 from models.person import PersonInfoDTO
 from models.film import MovieBaseDTO
-from services.film import FilmService
-from services.person import PersonService
+from services.film_service import FilmService
+from services.person_service import PersonService
 from services.service_factory import service_for
 from fastapi_cache.decorator import cache
 

@@ -3,7 +3,7 @@ from typing import Annotated, List
 from fastapi import APIRouter, Depends, Path, Request, Response
 
 from models.genre import GenreDTO
-from services.genre import GenreService
+from services.genre_service import GenreService
 from services.service_factory import service_for
 from fastapi_cache.decorator import cache
 

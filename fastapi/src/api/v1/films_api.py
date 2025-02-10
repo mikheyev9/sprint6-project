@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Path, Query, Request, Response
 
 from models.film import MovieInfoDTO, MovieBaseDTO
-from services.film import FilmService
+from services.film_service import FilmService
 from services.service_factory import service_for
 from fastapi_cache.decorator import cache
 
