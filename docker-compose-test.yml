@@ -1,5 +1,5 @@
 version: '3.8'
-name: Movie_theater - test
+name: movie_theater_test
 
 services:
   fastapi:
@@ -28,7 +28,9 @@ services:
     entrypoint: >
       sh -c "python3 /tests/functional/utils/wait_for_es.py
       && python3 /tests/functional/utils/wait_for_redis.py
-      && pytest -v"
+      && python /tests/functional/utils/load_into_el.py
+      && pytest -v
+      && tail -f /dev/null"
     depends_on:
       - fastapi
 
@@ -38,6 +40,33 @@ services:
     expose:
       - "6379"
     restart: always
+
+  theatre-db:
+    image: postgres:16
+    container_name: theatre-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=qwerty1234
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=project_collection
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/database_dump.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # etl:
+  #   build:
+  #     context: ./elastic
+  #     dockerfile: Dockerfile
+  #   container_name: etl
+  #   restart: always
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - theatre-db
+  #     - elasticsearch
+  #     - redis
 
   elasticsearch:
     image: elasticsearch:8.7.0
@@ -49,3 +78,9 @@ services:
       - ES_JAVA_OPTS=-Xms2048m -Xmx2048m
     ports:
       - 9200:9200
+
+
+volumes:
+  postgres_data:
+  elasticsearch:
+  redis_data:

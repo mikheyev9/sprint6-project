@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List
 import logging
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
@@ -20,7 +20,7 @@ class PersonService(BaseService[PersonInfoDTO]):
         self,
         page_size: int = 50,
         page_number: int = 1,
-        query: Optional[str] = None
+        query: str | None = None
     ) -> List[PersonInfoDTO]:
         """
         Выполняет поиск персон по имени.

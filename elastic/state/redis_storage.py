@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 from .base_storage import BaseStorage
 from config.redis import RedisClient
@@ -16,7 +15,7 @@ class RedisStorage(BaseStorage):
         """
         self.redis_client.set(key, value)
 
-    def retrieve_state(self, key: str) -> Optional[str]:
+    def retrieve_state(self, key: str) -> str | None:
         """Получить состояние из хранилища.
         """
         value = self.redis_client.get(key)

@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import List
 
 from elasticsearch import AsyncElasticsearch, NotFoundError, TransportError
 
@@ -17,11 +17,11 @@ class FilmService(BaseService[MovieInfoDTO]):
 
     async def search(
         self,
-        genre: Optional[str] = None,
+        genre: str | None = None,
         page_size: int = 50,
         page_number: int = 1,
         sort: str = "imdb_rating",
-        query: Optional[str] = None
+        query: str | None = None
     ) -> List[MovieBaseDTO]:
         """
         Получает список фильмов из Elasticsearch
