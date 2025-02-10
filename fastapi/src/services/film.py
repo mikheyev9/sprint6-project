@@ -1,5 +1,8 @@
 import logging
+from http import HTTPStatus
 from typing import List
+
+from fastapi import HTTPException
 
 from db.abstract_db import AbstractDAO
 from services.base_service import BaseService
@@ -38,4 +41,8 @@ class FilmService(BaseService[MovieInfoDTO]):
             sort=[{sort: "desc"}],
             filters=filters,
         )
+        if not response:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND, detail='films not found'
+            )
         return [MovieBaseDTO(**hit) for hit in response]

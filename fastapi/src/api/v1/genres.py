@@ -1,7 +1,6 @@
-from http import HTTPStatus
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, Response
+from fastapi import APIRouter, Depends, Path, Request, Response
 
 from models.genre import GenreDTO
 from services.genre import GenreService
@@ -24,13 +23,7 @@ async def get_genres(
     response: Response,
     genre_service: GenreService = Depends(service_for("genre"))
 ) -> List[GenreDTO]:
-    genres = await genre_service.search()
-    if not genres:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='genres not found'
-        )
-    return genres
-
+    return await genre_service.search()
 
 @router.get(
     '/{genre_id}',
@@ -51,9 +44,4 @@ async def genre_details(
     ],
     genre_service: GenreService = Depends(service_for("genre"))
 ) -> GenreDTO:
-    genre = await genre_service.get_by_id(genre_id)
-    if not genre:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='genre not found'
-        )
-    return genre
+    return genre_service.get_by_id(genre_id)

@@ -1,5 +1,8 @@
+from http import HTTPStatus
 from typing import List
 import logging
+
+from fastapi import HTTPException
 
 from db.abstract_db import AbstractDAO
 from models.person import PersonInfoDTO
@@ -34,4 +37,8 @@ class PersonService(BaseService[PersonInfoDTO]):
             offset=(page_number - 1) * page_size,
             filters=filters,
         )
+        if not response:
+            raise HTTPException(
+                status_code=HTTPStatus.NOT_FOUND, detail='persons not found'
+            )
         return [self.model(**hit) for hit in response]
