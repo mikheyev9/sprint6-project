@@ -40,7 +40,8 @@ class ElasticDB(AbstractDB):
         if sort:
             search_query["sort"] = sort
         try:
-            return await self.elastic.search(index=table, body=search_query)
+            response = await self.elastic.search(index=table, body=search_query)
+            return [hit["_source"] for hit in response["hits"]["hits"]]
         except NotFoundError:
             logger.warning(f"Объекты в {table} не найдены: query={query}")
             return []

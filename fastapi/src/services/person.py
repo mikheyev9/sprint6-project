@@ -29,7 +29,7 @@ class PersonService(BaseService[PersonInfoDTO]):
         search_query = {"bool": {"must": []}}
 
         if query:
-            search_query["query"]["bool"]["must"].append(
+            search_query["bool"]["must"].append(
                 {"multi_match": {"query": query, "fields": ["full_name"]}}
             )
 
@@ -39,8 +39,4 @@ class PersonService(BaseService[PersonInfoDTO]):
             limit=page_size,
             offset=(page_number - 1) * page_size,
         )
-        return [
-            self.model(
-                **hit["_source"]
-            ) for hit in response["hits"]["hits"]
-        ]
+        return [self.model(**hit) for hit in response]

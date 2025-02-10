@@ -29,8 +29,4 @@ class GenreService(BaseService[GenresDTO]):
             query=search_query,
             limit=self.page_size,
         )
-        return [
-            self.model(
-                **hit["_source"]
-            ) for hit in response["hits"]["hits"]
-        ]
+        return [GenreDTO(**hit) for hit in response]

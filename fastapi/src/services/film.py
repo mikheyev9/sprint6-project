@@ -63,8 +63,4 @@ class FilmService(BaseService[MovieInfoDTO]):
             limit=page_size,
             sort=[{sort: "desc"}],
         )
-        return [
-            MovieBaseDTO(
-                **hit["_source"]
-            ) for hit in response["hits"]["hits"]
-        ]
+        return [MovieBaseDTO(**hit) for hit in response]
