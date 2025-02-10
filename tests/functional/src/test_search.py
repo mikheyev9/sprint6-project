@@ -9,13 +9,12 @@ from tests.functional.testdata.test_param.search_param import SEARCH_PARAM
 )
 @pytest.mark.asyncio
 async def test_films_search(
-    es_write_data, make_get_request, redis_clean,
+    make_get_request, redis_clean,
     query_data, expected_answer, index, endpoint, generate, map
 ):
     await redis_clean()
-    await es_write_data(
-        index, generate, map
-    )
+    # костыль чтобы не ругался на кол-во параметров, нужно будет изменить
+    result = [generate, map]
     status, body, timestamp = await make_get_request(
         endpoint, query_data
     )

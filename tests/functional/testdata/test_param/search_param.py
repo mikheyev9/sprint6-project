@@ -6,24 +6,22 @@ from functional.testdata.etl_indexes.movies_indexes import (
 from functional.testdata.etl_indexes.persons_indexes import (
     PERSONS_INDEX_MAPPING
 )
-from tests.functional.testdata.es_generate.film_generate import (
-    generate_films
-)
-from tests.functional.testdata.es_generate.person_generate import (
-    generate_persons
-)
+from tests.functional.testdata.es_generate.film_generate import MOVIES_DATA
+from tests.functional.testdata.es_generate.person_generate import PERSONS_DATA
 
+# MOVIES_DATA.get('movies') список из словарей,
+# формат такой же как и был в функции, получить данные можно по срезу (длину среза выставляем ту которая нужна)
 FILMS_PARAM = [
     'movies',
     'films/search/',
-    generate_films(),
+    MOVIES_DATA.get('movies'),
     MOVIES_INDEX_MAPPING
 ]
 
 PERSONS_PARAM = [
     'persons',
     'persons/search/',
-    generate_persons(),
+    PERSONS_DATA.get('persons'),
     PERSONS_INDEX_MAPPING
 ]
 
