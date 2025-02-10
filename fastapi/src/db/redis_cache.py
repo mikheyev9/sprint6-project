@@ -1,14 +1,9 @@
+from abc import ABC, abstractmethod
 from redis import asyncio as aioredis
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 
 from core.config import Settings
-
-
-from abc import ABC, abstractmethod
-from redis import asyncio as aioredis
-from fastapi_cache.backends.redis import RedisBackend
-from fastapi_cache import FastAPICache
 
 
 class CacheInterface(ABC):
