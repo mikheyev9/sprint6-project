@@ -1,17 +1,26 @@
+from dataclasses import dataclass
 from http import HTTPStatus
 from typing import List
+from functools import lru_cache
 
 from fastapi import HTTPException, Depends
 
 from db.abstract_db import AbstractDAO, get_db
-from services.abc.singlton_abc import SingletonService
 from models.film import MovieInfoDTO, MovieBaseDTO
 
 
-class FilmService(SingletonService):
-    def __init__(self, db: AbstractDAO = Depends(get_db)):
-        self.db = db
-        self.index = "movies"
+@lru_cache()
+def get_film_service(
+    db: AbstractDAO = Depends(get_db),
+) -> 'FilmService':
+    return FilmService(db)
+
+
+@dataclass
+class FilmService:
+    """Сервис для работы с фильмами."""
+    db: AbstractDAO
+    index: str = "movies"
     
     async def get_by_id(self, entity_id: str):
         """

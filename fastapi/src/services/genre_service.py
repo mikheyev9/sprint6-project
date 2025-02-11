@@ -1,18 +1,27 @@
+from dataclasses import dataclass
 from http import HTTPStatus
 from typing import List
+from functools import lru_cache
+
 
 from fastapi import HTTPException, Depends
 
 from db.abstract_db import AbstractDAO, get_db
-from services.abc.singlton_abc import SingletonService
 from models.genre import GenreDTO
 
-class GenreService(SingletonService):
-    def __init__(self, db: AbstractDAO = Depends(get_db)):
-        self.db = db
-        self.index = "genres"
 
-    
+@lru_cache()
+def get_genre_service(
+    db: AbstractDAO = Depends(get_db),
+) -> 'GenreService':
+    return GenreService(db)
+
+@dataclass
+class GenreService:
+    """Сервис для работы с жанрами."""
+    db: AbstractDAO
+    index: str = "genres"
+
     async def get_by_id(self, entity_id: str):
         """
         Получает жанр по ID.

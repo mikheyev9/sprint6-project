@@ -1,17 +1,25 @@
+from dataclasses import dataclass
 from http import HTTPStatus
+from functools import lru_cache
 from typing import List
 
 from fastapi import HTTPException, Depends
 
 from db.abstract_db import AbstractDAO, get_db
-from services.abc.singlton_abc import SingletonService
 from models.person import PersonInfoDTO
 
 
-class PersonService(SingletonService):
-    def __init__(self, db: AbstractDAO = Depends(get_db)):
-        self.db = db
-        self.index = "persons"
+@lru_cache()
+def get_person_service(
+    db: AbstractDAO = Depends(get_db),
+) -> 'PersonService':
+    return PersonService(db)
+
+@dataclass
+class PersonService:
+    """Сервис для работы с персонами."""
+    db: AbstractDAO
+    index: str = "persons"
     
     async def get_by_id(self, entity_id: str):
         """

@@ -3,7 +3,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Path, Query, Request, Response
 
 from models.film import MovieInfoDTO, MovieBaseDTO
-from services.film_service import FilmService
+from services.film_service import FilmService, get_film_service
 from fastapi_cache.decorator import cache
 
 router = APIRouter()
@@ -49,7 +49,7 @@ async def get_films(
             description="To sort by rating",
         )
     ] = 'imdb_rating',
-    film_service: FilmService = Depends()
+    film_service: FilmService = Depends(get_film_service)
  ) -> list[MovieBaseDTO]:
     return await film_service.search(
         genre=genre,
@@ -76,7 +76,7 @@ async def film_details(
             description="Film id for the item to search in the database",
         ),
     ],
-    film_service: FilmService = Depends()
+    film_service: FilmService = Depends(get_film_service)
 ) -> MovieInfoDTO:
     return await film_service.get_by_id(film_id)
 
@@ -114,7 +114,7 @@ async def search_films(
             description="Words for search of items in the database",
         )
     ] = None,
-    film_service: FilmService = Depends()
+    film_service: FilmService = Depends(get_film_service)
 ) -> list[MovieBaseDTO]:
     return await film_service.search(
         page_number=page_number,
