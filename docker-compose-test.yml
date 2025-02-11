@@ -1,6 +1,3 @@
-version: '3.8'
-name: movie_theater_test
-
 services:
   fastapi:
     container_name: fastapi
