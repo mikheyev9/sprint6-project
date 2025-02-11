@@ -3,8 +3,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class TestSettings(BaseSettings):
     # Elasticsearch
+    elasticsearch_host: str
+    elasticsearch_port: int
     elasticsearch_dsn: str
-    elasticsearch_index: str
 
     # Redis
     redis_host: str
@@ -15,7 +16,9 @@ class TestSettings(BaseSettings):
     redis_dsn: str
 
     # Fastapi
-    service_url: str
+    service_host: str
+    service_port: int
+    service_dsn: str
 
     model_config = SettingsConfigDict(env_file='.env')
 

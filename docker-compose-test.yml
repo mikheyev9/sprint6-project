@@ -29,8 +29,7 @@ services:
       sh -c "python3 /tests/functional/utils/wait_for_es.py
       && python3 /tests/functional/utils/wait_for_redis.py
       && python /tests/functional/utils/load_into_el.py
-      && pytest -v
-      && tail -f /dev/null"
+      && pytest -v"
     depends_on:
       - fastapi
 
@@ -51,8 +50,3 @@ services:
       - ES_JAVA_OPTS=-Xms2048m -Xmx2048m
     ports:
       - 9200:9200
-
-
-volumes:
-  elasticsearch:
-  redis_data:
