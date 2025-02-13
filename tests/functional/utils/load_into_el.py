@@ -2,16 +2,17 @@ import json
 import os
 import asyncio
 import logging
+
 from elasticsearch import AsyncElasticsearch, helpers  # noqa
+from elasticsearch.helpers import BulkIndexError
+
 from functional.testdata.etl_indexes.genres_indexes import GENRES_INDEX_MAPPING
 from functional.testdata.etl_indexes.movies_indexes import MOVIES_INDEX_MAPPING
 from functional.testdata.etl_indexes.persons_indexes import PERSONS_INDEX_MAPPING
-from elasticsearch.helpers import BulkIndexError
+from functional.settings import test_settings
 
-logging.basicConfig(
-    level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger()
+
+logger = logging.getLogger(__name__)
 
 
 async def create_index_if_not_exists(es, index_name, mapping):
@@ -23,7 +24,7 @@ async def create_index_if_not_exists(es, index_name, mapping):
 
 
 async def load_data_to_elasticsearch():
-    es_host = 'http://elasticsearch:9200'
+    es_host = test_settings.elasticsearch_dsn
     indices = {
         'genres': GENRES_INDEX_MAPPING,
         'movies': MOVIES_INDEX_MAPPING,

@@ -1,7 +1,8 @@
+import pytest
 from http import HTTPStatus
 from uuid import uuid4
-import pytest
-from functional.testdata.es_generate.film_generate import MOVIES_DATA
+
+from functional.testdata.es_generate import MOVIES_DATA
 
 
 MOVIES_URL = 'films'
@@ -32,7 +33,7 @@ async def test_film_validation(make_get_request, movie_id):
         assert response_status == HTTPStatus.NOT_FOUND, (
             "Ожидали статус NOT_FOUND для недействительного movie_id."
         )
-        expected_error = {"detail": "film not found"}
+        expected_error = {"detail": "movies not found"}
         assert response_data == expected_error, (
             f"Ожидали {expected_error} в ответе, получили {response_data}."
         )
