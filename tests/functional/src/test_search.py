@@ -4,17 +4,20 @@ from tests.functional.testdata.test_param.search_param import SEARCH_PARAM
 
 
 @pytest.mark.parametrize(
-    'query_data, expected_answer, index, endpoint, generate, map',
+    'query_data, expected_answer, index, endpoint',
     SEARCH_PARAM
 )
 @pytest.mark.asyncio
 async def test_films_search(
     make_get_request, redis_clean,
-    query_data, expected_answer, index, endpoint, generate, map
+    query_data, expected_answer, index, endpoint
 ):
+    """
+    Тестирование endpoints 'search' для индексов movies, persons
+    с указанием существуего, не существуещего или отсутствуещего
+    слова для поиска с различными параметрами страницы.
+    """
     await redis_clean()
-    # костыль чтобы не ругался на кол-во параметров, нужно будет изменить
-    result = [generate, map]
     status, body, timestamp = await make_get_request(
         endpoint, query_data
     )

@@ -1,5 +1,6 @@
 from abc import ABC
 from typing import Dict, Type
+
 from pydantic import BaseModel, ConfigDict
 
 
