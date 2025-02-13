@@ -1,4 +1,8 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from logging import config as logging_config
+
+from .utils.logger import LOGGING_CONFIG
+logging_config.dictConfig(LOGGING_CONFIG)
 
 
 class TestSettings(BaseSettings):
