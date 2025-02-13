@@ -1,15 +1,12 @@
 import logging
 import time
 from functools import wraps
-from logging import config as logging_config
 
 from elasticsearch.exceptions import ConnectionError as ElasticsearchError
 from redis.exceptions import ConnectionError as RedisError
 
-from core.logger import LOGGING_CONFIG
 
 logger = logging.getLogger(__name__)
-logging_config.dictConfig(LOGGING_CONFIG)
 
 
 def backoff(

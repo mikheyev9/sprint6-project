@@ -3,11 +3,9 @@ from logging import config as logging_config
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from .logger import LOGGING
+from .logger import LOGGING_CONFIG
 
-logging_config.dictConfig(LOGGING)
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+logging_config.dictConfig(LOGGING_CONFIG)
 
 
 class Settings(BaseSettings):
