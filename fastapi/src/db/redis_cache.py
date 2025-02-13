@@ -1,9 +1,13 @@
 from abc import ABC, abstractmethod
+
 from redis import asyncio as aioredis
+from redis.exceptions import ConnectionError as RedisError
+
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 
 from core.config import Settings
+from utils.backoff import backoff
 
 
 class CacheInterface(ABC):
@@ -48,6 +52,7 @@ class RedisCacheManager:
         self.redis_client: aioredis.Redis | None = None
         self.cache: CacheInterface | None = None
 
+    @backoff(RedisError)
     async def setup(self):
         self.redis_client = await RedisClientFactory.create(
             self.settings.redis_dsn
@@ -55,6 +60,7 @@ class RedisCacheManager:
         self.cache = RedisCache(self.redis_client)
         await self.cache.connect()
 
+    @backoff(RedisError)
     async def tear_down(self):
         if self.cache:
             await self.cache.close()

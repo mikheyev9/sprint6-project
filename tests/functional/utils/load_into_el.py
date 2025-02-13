@@ -11,8 +11,10 @@ from functional.testdata.etl_indexes.movies_indexes import MOVIES_INDEX_MAPPING
 from functional.testdata.etl_indexes.persons_indexes import PERSONS_INDEX_MAPPING
 from functional.settings import test_settings
 
-
-logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger()
 
 
 async def create_index_if_not_exists(es, index_name, mapping):

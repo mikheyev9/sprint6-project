@@ -1,57 +1,49 @@
-LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-LOG_DEFAULT_HANDLERS = ['console', ]
+LOGGING_FORMAT = '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+LOGGING_VERBOSE_FORMAT = (
+    '%(asctime)s [%(levelname)s] %(name)s '
+    '%(funcName)s:%(lineno)d: %(message)s'
+)
+LOGGING_DATEFMT = '%d-%m-%Y %H:%M:%S'
 
-LOGGING = {
+LOGGING_CONFIG = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
+        'standard': {
+            'format': LOGGING_FORMAT,
+            'datefmt': LOGGING_DATEFMT
+        },
         'verbose': {
-            'format': LOG_FORMAT
-        },
-        'default': {
-            '()': 'uvicorn.logging.DefaultFormatter',
-            'fmt': '%(levelprefix)s %(message)s',
-            'use_colors': None,
-        },
-        'access': {
-            '()': 'uvicorn.logging.AccessFormatter',
-            'fmt': "%(levelprefix)s %(client_addr)s - '%(request_line)s' %(status_code)s",
-        },
+            'format': LOGGING_VERBOSE_FORMAT,
+            'datefmt': LOGGING_DATEFMT
+        }
     },
     'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
         'default': {
-            'formatter': 'default',
+            'level': 'INFO',
+            'formatter': 'standard',
             'class': 'logging.StreamHandler',
             'stream': 'ext://sys.stdout',
         },
-        'access': {
-            'formatter': 'access',
-            'class': 'logging.StreamHandler',
-            'stream': 'ext://sys.stdout',
+        'file': {
+            'level': 'DEBUG',
+            'formatter': 'verbose',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': 'app.log',
+            'maxBytes': 1024 * 1024 * 5,
+            'backupCount': 5,
         },
     },
     'loggers': {
         '': {
-            'handlers': LOG_DEFAULT_HANDLERS,
-            'level': 'INFO',
+            'handlers': ['default', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
         },
-        'uvicorn.error': {
-            'level': 'INFO',
-        },
-        'uvicorn.access': {
-            'handlers': ['access'],
+        'your_module_name': {
+            'handlers': ['file'],
             'level': 'INFO',
             'propagate': False,
         },
-    },
-    'root': {
-        'level': 'INFO',
-        'formatter': 'verbose',
-        'handlers': LOG_DEFAULT_HANDLERS,
     },
 }
