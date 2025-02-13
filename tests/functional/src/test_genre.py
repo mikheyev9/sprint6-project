@@ -23,7 +23,6 @@ async def test_get_all_genres(make_get_request):
     assert isinstance(body, list), "Ожидаем получить список жанров."
     assert len(body) > 0, "Список жанров не должен быть пустым"
     
-    # Проверяем структуру первого жанра
     first_genre = body[0]
     assert "id" in first_genre, "У жанра должен быть ключ 'id'"
     assert "name" in first_genre, "У жанра должен быть ключ 'name'"
@@ -97,29 +96,24 @@ async def test_genre_redis_caching(redis_clean, make_get_request, redis_client):
     4. Делаем повторный запрос (опционально проверяем время/логику)
     """
     
-    # Шаг 1: очищаем Redis и проверяем, что ключей нет
     await redis_clean()
     count_keys_before = await redis_client.dbsize()
     assert count_keys_before == 0, "Redis должен быть пуст перед тестом кеширования."
 
     endpoint = "genres"
-    # Шаг 2: первый запрос
     status_first, body_first, _ = await make_get_request(endpoint)
     assert status_first == HTTPStatus.OK, "Первый запрос должен вернуть 200"
 
-    # Шаг 3: смотрим, появился ли ключ в Redis
     count_keys_after = await redis_client.dbsize()
     assert count_keys_after > 0, (
         "Ожидалось, что после первого запроса в Redis появятся ключи (кэш)."
     )
 
-    # Шаг 4: второй запрос (опционально замеряем время, если хотим проверить реально, что кэш работает)
     t_start = time.time()
     status_second, body_second, _ = await make_get_request(endpoint)
     t_finish = time.time()
 
     assert status_second == HTTPStatus.OK, "Второй запрос должен вернуть 200"
-    # Данные обычно одинаковые (если никто не менял БД)
     assert body_first == body_second, "Ответ при втором запросе должен совпадать с первым (кэш)"
 
     # Опционально проверяем время — если у вас очень быстрый сервис, может быть, разница будет не особо заметна
