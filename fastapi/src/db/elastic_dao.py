@@ -2,9 +2,10 @@ import logging
 
 from fastapi import Request
 from elasticsearch import AsyncElasticsearch, NotFoundError, TransportError
-
+from elasticsearch.exceptions import ConnectionError as ElasticsearchError
 from db.abstract_db import AbstractDAO
-
+from utils.backoff import backoff
+ 
 logger = logging.getLogger(__name__)
 
 
@@ -15,6 +16,7 @@ class ElasticDAO(AbstractDAO):
         """Конструктор класса."""
         self.elastic = elastic
 
+    @backoff(ElasticsearchError)
     async def get(self, table: str, id_obj: str) -> dict[str, str] | None:
         """Получение объекта по id."""
         try:
@@ -28,6 +30,7 @@ class ElasticDAO(AbstractDAO):
             )
         return None
 
+    @backoff(ElasticsearchError)
     async def search(
             self, table: str,
             offset: int = 0,
@@ -78,7 +81,7 @@ class ElasticDAO(AbstractDAO):
             )
         return []
 
-
+ 
 async def get_elastic(request: Request) -> ElasticDAO:
     """Получение объекта ElasticSearchDB."""
     return request.app.state.elastic

@@ -14,6 +14,7 @@ from utils.logger import LOGGING_CONFIG
 
 from typing import Callable
 from psycopg.sql import SQL
+
 logger = logging.getLogger(__name__)
 logging_config.dictConfig(LOGGING_CONFIG)
 
