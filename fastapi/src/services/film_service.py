@@ -32,7 +32,7 @@ class FilmService:
         if not doc:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND,
-                detail=f'film not found',
+                detail=f'{self.index} not found',
             )
         return MovieInfoDTO(**doc)
 

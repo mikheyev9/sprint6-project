@@ -31,7 +31,7 @@ class PersonService:
         if not doc:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND,
-                detail=f'persons not found',
+                detail=f'{self.index} not found',
             )
         return PersonInfoDTO(**doc)
 

@@ -33,7 +33,7 @@ class GenreService:
         if not doc:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND,
-                detail=f'genres not found',
+                detail=f'{self.index} not found',
             )
         return GenreDTO(**doc)
 
