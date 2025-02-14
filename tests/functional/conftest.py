@@ -11,9 +11,10 @@ from elasticsearch import AsyncElasticsearch
 from functional.settings import test_settings
 from functional.utils.logger import LOGGING_CONFIG
 
-
-logger = logging.getLogger(__name__)
+# First configure logging
 logging_config.dictConfig(LOGGING_CONFIG)
+# Then create logger instance
+logger = logging.getLogger(__name__)
 
 
 @pytest_asyncio.fixture(scope='session')
