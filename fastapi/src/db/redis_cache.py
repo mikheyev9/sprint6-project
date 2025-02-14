@@ -1,25 +1,66 @@
+from abc import ABC, abstractmethod
+
 from redis import asyncio as aioredis
+from redis.exceptions import ConnectionError as RedisError
+
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 
 from core.config import Settings
+from utils.backoff import backoff
 
 
-class RedisCache:
+class CacheInterface(ABC):
+    @abstractmethod
+    async def connect(self):
+        pass
+
+    @abstractmethod
+    async def close(self):
+        pass
+
+
+class RedisCache(CacheInterface):
     """Класс для управления подключением к Redis."""
+
+    def __init__(self, redis_client: aioredis.Redis):
+        self.redis_client = redis_client
+
+    async def connect(self):
+        FastAPICache.init(
+            RedisBackend(self.redis_client),
+            prefix="fastapi-cache"
+        )
+
+    async def close(self):
+        await self.redis_client.close()
+
+
+class RedisClientFactory:
+    """Фабрика для создания клиента Redis."""
+
+    @staticmethod
+    async def create(redis_dsn: str) -> aioredis.Redis:
+        return await aioredis.from_url(redis_dsn)
+
+
+class RedisCacheManager:
+    """Менеджер для управления подключением и кешированием Redis."""
 
     def __init__(self, settings: Settings):
         self.settings = settings
         self.redis_client: aioredis.Redis | None = None
+        self.cache: CacheInterface | None = None
 
-    async def connect(self):
-        if self.redis_client is None:
-            self.redis_client = aioredis.from_url(self.settings.redis_dsn)
-            FastAPICache.init(
-                RedisBackend(self.redis_client),
-                prefix="fastapi-cache"
-            )
+    @backoff(RedisError)
+    async def setup(self):
+        self.redis_client = await RedisClientFactory.create(
+            self.settings.redis_dsn
+        )
+        self.cache = RedisCache(self.redis_client)
+        await self.cache.connect()
 
-    async def close(self):
-        if self.redis_client:
-            await self.redis_client.close()
+    @backoff(RedisError)
+    async def tear_down(self):
+        if self.cache:
+            await self.cache.close()

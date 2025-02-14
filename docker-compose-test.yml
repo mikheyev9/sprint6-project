@@ -1,0 +1,50 @@
+services:
+  fastapi:
+    container_name: fastapi
+    build:
+      context: ./fastapi
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - 8000:8000
+    depends_on:
+      - elasticsearch
+      - redis
+
+  tests:
+    build:
+      context: ./tests
+      dockerfile: Dockerfile
+    container_name: tests
+    volumes:
+      - ./tests:/opt/app/tests:ro
+    env_file:
+      - ./tests/.env
+    entrypoint: >
+      sh -c "python3 functional/utils/wait_for_es.py
+      && python3 functional/utils/wait_for_redis.py
+      && python3 functional/utils/load_into_el.py
+      && pytest -v
+      && tail -f /dev/null"
+    depends_on:
+      - fastapi
+
+  redis:
+    image: redislabs/redismod:latest
+    container_name: redis
+    expose:
+      - "6379"
+    restart: always
+
+  elasticsearch:
+    image: elasticsearch:8.7.0
+    container_name: elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms2048m -Xmx2048m
+    ports:
+      - 9200:9200

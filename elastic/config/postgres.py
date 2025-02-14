@@ -1,14 +1,17 @@
 import logging
+from logging import config as logging_config
 
 import psycopg
 from psycopg.errors import ConnectionFailure
 from pydantic import PostgresDsn
 from psycopg.rows import dict_row
 from utils.backoff import backoff
-
+from utils.logger import LOGGING_CONFIG
 from .base import BaseConfig
 
+
 logger = logging.getLogger(__name__)
+logging_config.dictConfig(LOGGING_CONFIG)
 
 
 class PostgresClient(BaseConfig):

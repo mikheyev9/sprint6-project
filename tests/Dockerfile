@@ -3,13 +3,13 @@ FROM python:3.12
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-WORKDIR /opt/app
+WORKDIR /tests
 
-COPY ./requirements.txt .
+COPY ./functional/requirements.txt .
 
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt
 
-COPY ./src .
+COPY . .
 
-CMD [ "uvicorn", "main:app", "--reload", "--host", "0.0.0.0", "--port", "8000" ]
+ENV PYTHONPATH /tests
