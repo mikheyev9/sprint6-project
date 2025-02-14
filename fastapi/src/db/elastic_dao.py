@@ -40,7 +40,12 @@ class ElasticDAO(AbstractDAO):
     ):
         """Поиск объектов в таблице."""
         must_conditions = []
+        
         filter_conditions = []
+        
+        if filters is None:
+            filters = {}
+        
         search_query = {
             "size": limit,
             "from": offset,
