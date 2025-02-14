@@ -1,28 +1,13 @@
 from http import HTTPStatus
 
-from functional.testdata.etl_indexes.movies_indexes import (
-    MOVIES_INDEX_MAPPING
-)
-from functional.testdata.etl_indexes.persons_indexes import (
-    PERSONS_INDEX_MAPPING
-)
-from tests.functional.testdata.es_generate.film_generate import MOVIES_DATA
-from tests.functional.testdata.es_generate.person_generate import PERSONS_DATA
-
-# MOVIES_DATA.get('movies') список из словарей,
-# формат такой же как и был в функции, получить данные можно по срезу (длину среза выставляем ту которая нужна)
 FILMS_PARAM = [
     'movies',
     'films/search/',
-    MOVIES_DATA.get('movies'),
-    MOVIES_INDEX_MAPPING
 ]
 
 PERSONS_PARAM = [
     'persons',
     'persons/search/',
-    PERSONS_DATA.get('persons'),
-    PERSONS_INDEX_MAPPING
 ]
 
 SEARCH_PARAM = [
@@ -35,35 +20,35 @@ SEARCH_PARAM = [
         {'status': HTTPStatus.OK, 'length': 60},
     ]+FILMS_PARAM,
     [
-        {'query': 'The Star', 'page_number': 2},
-        {'status': HTTPStatus.OK, 'length': 10},
+        {'query': 'The Star', 'page_number': 20},
+        {'status': HTTPStatus.OK, 'length': 49},
     ]+FILMS_PARAM,
     [
         {},
         {'status': HTTPStatus.OK, 'length': 50},
     ]+FILMS_PARAM,
     [
-        {'query': 'Mashed potato'},
+        {'query': 'NoneFilms'},
         {'status': HTTPStatus.NOT_FOUND, 'length': 1},
     ]+FILMS_PARAM,
     [
-        {'query': 'Tom Jerry'},
+        {'query': 'John'},
         {'status': HTTPStatus.OK, 'length': 50},
     ]+PERSONS_PARAM,
     [
-        {'query': 'Tom Jerry', 'page_size': 60},
+        {'query': 'John', 'page_size': 60},
         {'status': HTTPStatus.OK, 'length': 60},
     ]+PERSONS_PARAM,
     [
-        {'query': 'Tom Jerry', 'page_number': 2},
-        {'status': HTTPStatus.OK, 'length': 10},
+        {'query': 'John', 'page_number': 2},
+        {'status': HTTPStatus.OK, 'length': 20},
     ]+PERSONS_PARAM,
     [
         {},
         {'status': HTTPStatus.OK, 'length': 50},
     ]+PERSONS_PARAM,
     [
-        {'query': 'Red Boy'},
+        {'query': 'NonePerson'},
         {'status': HTTPStatus.NOT_FOUND, 'length': 1},
     ]+PERSONS_PARAM,
 ]

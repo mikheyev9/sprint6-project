@@ -1,6 +1,7 @@
 import time
 
 from redis import Redis
+
 from functional.settings import test_settings
 
 

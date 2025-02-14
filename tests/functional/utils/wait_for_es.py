@@ -1,6 +1,7 @@
 import time
 
 from elasticsearch import Elasticsearch
+
 from functional.settings import test_settings
 
 

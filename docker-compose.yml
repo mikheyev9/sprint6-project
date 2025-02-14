@@ -1,6 +1,3 @@
-version: '3.8'
-name: movie_theater
-
 services:
   etl:
     build:

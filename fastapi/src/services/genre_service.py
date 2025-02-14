@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from http import HTTPStatus
-from typing import List
 from functools import lru_cache
+from typing import List, Optional, Dict, Any
+import logging
 
 
 from fastapi import HTTPException, Depends
@@ -36,19 +37,33 @@ class GenreService:
             )
         return GenreDTO(**doc)
 
-    async def search(self, page_size: int = 50) -> List[GenreDTO]:
+
+    async def search(
+        self,
+        page_number: int = 1,
+        page_size: int = 50,
+        filters: Optional[Dict[str, Any]] = None,
+    ) -> List[GenreDTO]:
         """
-        Возвращает список всех жанров.
+        Возвращает список жанров из Elasticsearch с учётом пагинации и (опционально) фильтрации.
         """
-        
+        if filters is None:
+            filters = {}
+
+        # Для поиска с пагинацией используем offset/limit
+        offset = (page_number - 1) * page_size
+
         response = await self.db.search(
             table=self.index,
             limit=page_size,
+            offset=offset,
+            filters=filters,
         )
         
         if not response:
             raise HTTPException(
-                status_code=HTTPStatus.NOT_FOUND, detail='genres not found'
+                status_code=HTTPStatus.NOT_FOUND,
+                detail='genres not found'
             )
-            
+
         return [GenreDTO(**hit) for hit in response]

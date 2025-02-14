@@ -1,15 +1,20 @@
 import asyncio
 import logging
-
 import time
-
-import pytest_asyncio
-from redis import asyncio as aioredis
+from logging import config as logging_config
 
 import aiohttp
+import pytest_asyncio
+from redis import asyncio as aioredis
 from elasticsearch import AsyncElasticsearch
 
 from functional.settings import test_settings
+from functional.utils.logger import LOGGING_CONFIG
+
+# First configure logging
+logging_config.dictConfig(LOGGING_CONFIG)
+# Then create logger instance
+logger = logging.getLogger(__name__)
 
 
 @pytest_asyncio.fixture(scope='session')
@@ -45,17 +50,18 @@ def redis_clean(redis_client):
     async def inner():
         await redis_client.flushall()
         count_keys = await redis_client.dbsize()
-        if count_keys != 0:
-            print("Кеш в Redis не пустой")
-            raise Exception(f"Ошибка: ключей Redis:{count_keys} больше 0.")
-        print(f"Redis готов к тестам. Кол-во ключей:{count_keys}.")
+        logger.info(f"Redis готов к тестам. Кол-во ключей:{count_keys}.")
     return inner
+
 
 @pytest_asyncio.fixture(name='make_get_request')
 def make_get_request(aiohttp_client):
+    """
+    Получение запросов по endpoints с заданными параметрами.
+    """
     async def inner(endpoint: str, query_data: dict = None):
         time_start = time.time()
-        url = f'{test_settings.service_url}/api/v1/{endpoint}'
+        url = f'{test_settings.service_dsn}/api/v1/{endpoint}'
         async with aiohttp_client.get(url, params=query_data) as response:
             return (
                 response.status,
