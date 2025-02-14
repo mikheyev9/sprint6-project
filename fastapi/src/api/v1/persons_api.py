@@ -4,9 +4,8 @@ from fastapi import APIRouter, Depends, Path, Query, Request, Response
 
 from models.person import PersonInfoDTO
 from models.film import MovieBaseDTO
-from services.film_service import FilmService
-from services.person_service import PersonService
-from services.service_factory import service_for
+from services.film_service import FilmService, get_film_service
+from services.person_service import PersonService, get_person_service
 from fastapi_cache.decorator import cache
 
 router = APIRouter()
@@ -29,7 +28,7 @@ async def person_details(
     ],
     request: Request,
     response: Response,
-    person_service: PersonService = Depends(service_for("person")),
+    person_service: PersonService = Depends(get_person_service),
 ) -> PersonInfoDTO:
     return await person_service.get_by_id(person_id)
 
@@ -67,7 +66,7 @@ async def search_person(
             description="Words for search of items in the database",
         )
     ] = None,
-    person_service: PersonService = Depends(service_for("person")),
+    person_service: PersonService = Depends(get_person_service),
 ) -> list[PersonInfoDTO]:
     return await person_service.search(
         page_number=page_number,
@@ -93,8 +92,8 @@ async def get_films(
             description="Person id for the films to search in the database",
         ),
     ],
-    person_service: PersonService = Depends(service_for("person")),
-    film_service: FilmService = Depends(service_for("film"))
+    person_service: PersonService = Depends(get_person_service),
+    film_service: FilmService = Depends(get_film_service)
 ) -> list[MovieBaseDTO]:
     person = await person_service.get_by_id(person_id)
     return [await film_service.get_by_id(film.id) for film in person.films]
