@@ -3,7 +3,8 @@ from typing import Annotated, List
 from fastapi import APIRouter, Depends, Path, Request, Response
 
 from models.genre import GenreDTO
-from services.genre_service import GenreService, get_genre_service
+from services.genre_service import GenreService
+from services.service_factory import service_for
 from fastapi_cache.decorator import cache
 from fastapi import Query
 
@@ -21,9 +22,9 @@ router = APIRouter()
 async def get_genres(
     request: Request,
     response: Response,
-    genre_service: GenreService = Depends(get_genre_service)
     page_number: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1),
+    genre_service: GenreService = Depends(service_for("genre"))
 ) -> List[GenreDTO]:
     return await genre_service.search(page_number=page_number, page_size=page_size)
 
@@ -44,6 +45,6 @@ async def genre_details(
             description="Genre id for the item to search in the database",
         ),
     ],
-    genre_service: GenreService = Depends(get_genre_service)
+    genre_service: GenreService = Depends(service_for("genre"))
 ) -> GenreDTO:
     return await genre_service.get_by_id(genre_id)

@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI):
         await redis_cache_manager.setup()
 
         elastic_client = AsyncElasticsearch(hosts=[settings.elasticsearch_dsn])
-        app.state.db = ElasticDAO(elastic_client)
+        app.state.elastic = ElasticDAO(elastic_client)
 
         yield
 

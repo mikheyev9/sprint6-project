@@ -1,42 +1,23 @@
-from dataclasses import dataclass
 from http import HTTPStatus
-from functools import lru_cache
 from typing import List, Optional, Dict, Any
 import logging
 
+from fastapi import HTTPException
 
-from fastapi import HTTPException, Depends
+from db.abstract_db import AbstractDAO
+from services.base_service import BaseService
+from models.genre import GenresDTO, GenreDTO
 
-from db.abstract_db import AbstractDAO, get_db
-from models.genre import GenreDTO
+logger = logging.getLogger(__name__)
 
 
-@lru_cache()
-def get_genre_service(
-    db: AbstractDAO = Depends(get_db),
-) -> 'GenreService':
-    return GenreService(db)
+class GenreService(BaseService[GenreDTO]):
+    """Сервис для работы с жанрами в Elasticsearch."""
 
-@dataclass
-class GenreService:
-    """Сервис для работы с жанрами."""
-    db: AbstractDAO
-    index: str = "genres"
+    service_name = "genre"
 
-    async def get_by_id(self, entity_id: str):
-        """
-        Получает жанр по ID.
-        """
-        
-        doc = await self.db.get(table=self.index, id_obj=entity_id)
-        
-        if not doc:
-            raise HTTPException(
-                status_code=HTTPStatus.NOT_FOUND,
-                detail=f'genres not found',
-            )
-        return GenreDTO(**doc)
-
+    def __init__(self, search_db: AbstractDAO):
+        super().__init__(search_db, index="genres", model=GenreDTO)
 
     async def search(
         self,
@@ -59,7 +40,6 @@ class GenreService:
             offset=offset,
             filters=filters,
         )
-        
         if not response:
             raise HTTPException(
                 status_code=HTTPStatus.NOT_FOUND,
