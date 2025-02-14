@@ -31,8 +31,10 @@
 ## Запуск тестов
 
 1. Создайте файл .env для тестов
-```cp /tests/.env.example /tests/.env```
+   ```bash
+   cp /tests/.env.example /tests/.env
 
 1. Запустите тестовое окружение в Docker
-```docker compose -f docker-compose-test.yml up --build```
+   ```bash
+   docker compose -f docker-compose-test.yml up --build
 
