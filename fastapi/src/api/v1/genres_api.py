@@ -21,11 +21,12 @@ router = APIRouter()
 async def get_genres(
     request: Request,
     response: Response,
-    genre_service: GenreService = Depends(get_genre_service)
+    genre_service: GenreService = Depends(get_genre_service),
     page_number: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1),
 ) -> List[GenreDTO]:
     return await genre_service.search(page_number=page_number, page_size=page_size)
+
 
 @router.get(
     '/{genre_id}',
