@@ -5,8 +5,8 @@ from typing import List
 
 from fastapi import HTTPException, Depends
 
-from db.abstract_db import AbstractDAO, get_db
-from models.person import PersonInfoDTO
+from src.db.abstract_db import AbstractDAO, get_db
+from src.models.person import PersonInfoDTO
 
 
 @lru_cache()
