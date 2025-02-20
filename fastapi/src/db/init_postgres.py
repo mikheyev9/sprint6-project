@@ -6,11 +6,12 @@ from pydantic import EmailStr
 from src.core.config import settings
 from src.db.postgres import get_async_session
 from src.core.user_core import get_user_db, get_user_manager
-from src.schemas.user_shema import UserCreate
+from src.schemas.user_schema import UserCreate
 
 get_async_session_context = contextlib.asynccontextmanager(get_async_session)
 get_user_db_context = contextlib.asynccontextmanager(get_user_db)
 get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
+
 
 async def create_user(
         email: EmailStr, password: str, is_superuser: bool = False
@@ -21,16 +22,17 @@ async def create_user(
                 async with get_user_manager_context(user_db) as user_manager:
                     await user_manager.create(
                         UserCreate(
-                            email=email, 
-                            password=password, 
+                            email=email,
+                            password=password,
                             is_superuser=is_superuser
                         )
                     )
     except UserAlreadyExists:
         pass
 
+
 async def create_first_superuser():
-    if (settings.first_superuser_email is not None 
+    if (settings.first_superuser_email is not None
             and settings.first_superuser_password is not None):
         await create_user(
             email=settings.first_superuser_email,

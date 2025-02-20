@@ -14,7 +14,7 @@ from src.db.init_postgres import create_first_superuser
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Управление ресурсами FastAPI."""
-    
+
     elastic_client = None
     redis_cache_manager = RedisCacheManager(settings)
     try:
@@ -36,8 +36,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.project_name,
-    docs_url="/api/openapi",
-    openapi_url="/api/openapi.json",
+    docs_url="/openapi",
+    openapi_url="/openapi.json",
     default_response_class=ORJSONResponse,
     summary=settings.project_summary,
     version=settings.project_version,

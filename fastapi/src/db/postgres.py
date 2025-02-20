@@ -1,5 +1,6 @@
 import uuid
-from sqlalchemy import UUID 
+
+from sqlalchemy import UUID
 from sqlalchemy.orm import Mapped, mapped_column, declarative_base, declared_attr, sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
