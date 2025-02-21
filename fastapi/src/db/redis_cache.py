@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from core.config import Settings
+from core.config import RedisSettings
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 from redis import asyncio as aioredis
@@ -42,14 +42,14 @@ class RedisClientFactory:
 class RedisCacheManager:
     """Менеджер для управления подключением и кешированием Redis."""
 
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: RedisSettings):
         self.settings = settings
         self.redis_client: aioredis.Redis | None = None
         self.cache: CacheInterface | None = None
 
     @backoff(RedisError)
     async def setup(self):
-        self.redis_client = await RedisClientFactory.create(self.settings.redis_dsn)
+        self.redis_client = await RedisClientFactory.create(self.settings.dsn)
         self.cache = RedisCache(self.redis_client)
         await self.cache.connect()
 

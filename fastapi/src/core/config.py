@@ -1,20 +1,30 @@
 from logging import config as logging_config
 
 from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 
 from .logger import LOGGING_CONFIG
 
 logging_config.dictConfig(LOGGING_CONFIG)
 
 
-class Settings(BaseSettings):
-    # FastAPI
-    project_name: str
-    project_summary: str
-    project_version: str
-    project_terms_of_service: str
-    project_tags: list = Field(
+class BaseSettingsClass(BaseSettings):
+    """Базовый класс для настроек."""
+
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+        extra = "ignore"
+
+
+class ProjectSettings(BaseSettingsClass):
+    """Настройки проекта."""
+
+    name: str
+    summary: str
+    version: str
+    terms_of_service: str
+    tags: list = Field(
         default=[
             {
                 "name": "films",
@@ -31,26 +41,35 @@ class Settings(BaseSettings):
         ]
     )
 
-    # Redis
-    redis_host: str
-    redis_port: int
-    redis_user: str
-    redis_password: str
-    redis_db_index: int
-    redis_dsn: str = ""
-
-    # Elasticsearch
-    elasticsearch_host: str
-    elasticsearch_port: int
-    elasticsearch_dsn: str = ""
-
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
-
-    def model_post_init(self, __context):
-        """Формируем DSN после загрузки переменных"""
-
-        self.redis_dsn = f"redis://{self.redis_user}:{self.redis_password}@{self.redis_host}:{self.redis_port}/{self.redis_db_index}"
-        self.elasticsearch_dsn = f"http://{self.elasticsearch_host}:{self.elasticsearch_port}/"
+    class Config:
+        env_prefix = "PROJECT_"
 
 
-settings = Settings()
+class RedisSettings(BaseSettingsClass):
+    """Настройки Redis."""
+
+    host: str
+    port: int
+    user: str
+    password: str
+    db_index: int
+    dsn: str = ""
+
+    class Config:
+        env_prefix = "REDIS_"
+
+
+class ElasticSettings(BaseSettingsClass):
+    """Настройки Elasticsearch."""
+
+    host: str
+    port: int
+    dsn: str = ""
+
+    class Config:
+        env_prefix = "ELASTICSEARCH_"
+
+
+project_settings = ProjectSettings()  # type: ignore
+redis_settings = RedisSettings()  # type: ignore
+elastic_settings = ElasticSettings()  # type: ignore
