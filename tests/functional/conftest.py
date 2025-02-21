@@ -6,7 +6,7 @@ from logging import config as logging_config
 import aiohttp
 import pytest_asyncio
 from elasticsearch import AsyncElasticsearch
-from functional.settings import test_settings
+from functional.settings import elasticsearch_settings, redis_settings, service_settings
 from functional.utils.logger import LOGGING_CONFIG
 from redis import asyncio as aioredis
 
@@ -25,7 +25,7 @@ def event_loop():
 
 @pytest_asyncio.fixture(name="es_client", scope="session")
 async def es_client():
-    es_client = AsyncElasticsearch(hosts=test_settings.elasticsearch_dsn)
+    es_client = AsyncElasticsearch(hosts=elasticsearch_settings.dsn)
     yield es_client
     await es_client.close()
 
@@ -39,7 +39,7 @@ async def aiohttp_client():
 
 @pytest_asyncio.fixture(name="redis_client", scope="session")
 async def redis_client():
-    redis_client = aioredis.from_url(test_settings.redis_dsn)
+    redis_client = aioredis.from_url(redis_settings.dsn)
     yield redis_client
     await redis_client.aclose()
 
@@ -62,7 +62,7 @@ def make_get_request(aiohttp_client):
 
     async def inner(endpoint: str, query_data: dict = None):
         time_start = time.time()
-        url = f"{test_settings.service_dsn}/api/v1/{endpoint}"
+        url = f"{service_settings.dsn}/api/v1/{endpoint}"
         async with aiohttp_client.get(url, params=query_data) as response:
             return (response.status, await response.json(), time.time() - time_start)
 

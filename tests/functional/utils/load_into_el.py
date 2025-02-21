@@ -5,7 +5,7 @@ import os
 
 from elasticsearch import AsyncElasticsearch, helpers  # noqa
 from elasticsearch.helpers import BulkIndexError
-from functional.settings import test_settings
+from functional.settings import elasticsearch_settings
 from functional.testdata.etl_indexes.genres_indexes import GENRES_INDEX_MAPPING
 from functional.testdata.etl_indexes.movies_indexes import MOVIES_INDEX_MAPPING
 from functional.testdata.etl_indexes.persons_indexes import PERSONS_INDEX_MAPPING
@@ -23,7 +23,7 @@ async def create_index_if_not_exists(es, index_name, mapping):
 
 
 async def load_data_to_elasticsearch():
-    es_host = test_settings.elasticsearch_dsn
+    es_host = elasticsearch_settings.dsn
     indices = {"genres": GENRES_INDEX_MAPPING, "movies": MOVIES_INDEX_MAPPING, "persons": PERSONS_INDEX_MAPPING}
 
     es = AsyncElasticsearch([es_host])

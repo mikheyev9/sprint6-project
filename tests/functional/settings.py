@@ -7,33 +7,54 @@ from .utils.logger import LOGGING_CONFIG
 logging_config.dictConfig(LOGGING_CONFIG)
 
 
-class TestSettings(BaseSettings):
-    # Elasticsearch
-    elasticsearch_host: str
-    elasticsearch_port: int
-    elasticsearch_dsn: str = ""
+class ServiceSettings(BaseSettings):
+    """Настройки сервиса."""
 
-    # Redis
-    redis_host: str
-    redis_port: int
-    redis_user: str
-    redis_password: str
-    redis_db_index: int
-    redis_dsn: str = ""
+    host: str
+    port: int
+    dsn: str = ""
 
-    # FastAPI
-    service_host: str
-    service_port: int
-    service_dsn: str = ""
-
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="SERVICE_")
 
     def model_post_init(self, __context):
-        """Формируем DSN после загрузки переменных"""
+        """Формируем DSN после загрузки переменных."""
 
-        self.elasticsearch_dsn = f"http://{self.elasticsearch_host}:{self.elasticsearch_port}/"
-        self.redis_dsn = f"redis://{self.redis_user}:{self.redis_password}@{self.redis_host}:{self.redis_port}/{self.redis_db_index}"
-        self.service_dsn = f"http://{self.service_host}:{self.service_port}"
+        self.dsn = f"http://{self.host}:{self.port}"
 
 
-test_settings = TestSettings()
+class ElasticsearchSettings(BaseSettings):
+    """Настройки Elasticsearch."""
+
+    host: str
+    port: int
+    dsn: str = ""
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="ELASTICSEARCH_")
+
+    def model_post_init(self, __context):
+        """Формируем DSN после загрузки переменных."""
+
+        self.dsn = f"http://{self.host}:{self.port}/"
+
+
+class RedisSettings(BaseSettings):
+    """Настройки Redis."""
+
+    host: str
+    port: int
+    user: str
+    password: str
+    db_index: int
+    dsn: str = ""
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="REDIS_")
+
+    def model_post_init(self, __context):
+        """Формируем DSN после загрузки переменных."""
+
+        self.dsn = f"redis://{self.user}:{self.password}@{self.host}:{self.port}/{self.db_index}"
+
+
+service_settings = ServiceSettings()  # type: ignore
+elasticsearch_settings = ElasticsearchSettings()  # type: ignore
+redis_settings = RedisSettings()  # type: ignore
