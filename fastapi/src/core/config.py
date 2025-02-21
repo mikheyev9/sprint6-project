@@ -1,23 +1,14 @@
 from logging import config as logging_config
 
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .logger import LOGGING_CONFIG
 
 logging_config.dictConfig(LOGGING_CONFIG)
 
 
-class BaseSettingsClass(BaseSettings):
-    """Базовый класс для настроек."""
-
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        extra = "ignore"
-
-
-class ProjectSettings(BaseSettingsClass):
+class ProjectSettings(BaseSettings):
     """Настройки проекта."""
 
     name: str
@@ -41,11 +32,10 @@ class ProjectSettings(BaseSettingsClass):
         ]
     )
 
-    class Config:
-        env_prefix = "PROJECT_"
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="PROJECT_")
 
 
-class RedisSettings(BaseSettingsClass):
+class RedisSettings(BaseSettings):
     """Настройки Redis."""
 
     host: str
@@ -55,19 +45,27 @@ class RedisSettings(BaseSettingsClass):
     db_index: int
     dsn: str = ""
 
-    class Config:
-        env_prefix = "REDIS_"
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="REDIS_")
+
+    def model_post_init(self, __context):
+        """Формируем DSN после загрузки переменных."""
+
+        self.dsn = f"redis://{self.user}:{self.password}@{self.host}:{self.port}/{self.db_index}"
 
 
-class ElasticSettings(BaseSettingsClass):
+class ElasticSettings(BaseSettings):
     """Настройки Elasticsearch."""
 
     host: str
     port: int
     dsn: str = ""
 
-    class Config:
-        env_prefix = "ELASTICSEARCH_"
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="ELASTICSEARCH_")
+
+    def model_post_init(self, __context):
+        """Формируем DSN после загрузки переменных."""
+
+        self.dsn = f"http://{self.host}:{self.port}/"
 
 
 project_settings = ProjectSettings()  # type: ignore
