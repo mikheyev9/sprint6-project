@@ -1,30 +1,30 @@
 import logging
-from logging import config as logging_config
 from dataclasses import dataclass
 from enum import Enum
-from psycopg.sql import SQL
+from logging import config as logging_config
+from typing import Callable
 
 from config.settings import Settings
 from models.genre import GenreDTO
 from models.movie import MovieDTO
 from models.person import PersonInfoDTO
+from psycopg.sql import SQL
 from utils.logger import LOGGING_CONFIG
-from typing import Callable
 
 logger = logging.getLogger(__name__)
 logging_config.dictConfig(LOGGING_CONFIG)
 
 
 class Indexes(Enum):
-    GENRES = 'genres'
-    MOVIES = 'movies'
-    PERSONS = 'persons'
+    GENRES = "genres"
+    MOVIES = "movies"
+    PERSONS = "persons"
 
 
 class Tables(Enum):
-    GENRE = 'genre'
-    FILM_WORK = 'film_work'
-    PERSON = 'person'
+    GENRE = "genre"
+    FILM_WORK = "film_work"
+    PERSON = "person"
 
 
 @dataclass
@@ -42,21 +42,11 @@ class ETLManager:
 
     def run_etl(self, etl_config: ETL):
         logger.info(
-            '📊  Старт ETL процесса для индекса: %s и таблицы: %s',
-            etl_config.index.value,
-            etl_config.table.value
+            "📊  Старт ETL процесса для индекса: %s и таблицы: %s", etl_config.index.value, etl_config.table.value
         )
         try:
             self.etl_function(etl_config, self.settings)
-            logger.info(
-                '✅  ETL процесс для индекса %s завершён успешно!',
-                etl_config.index.value
-            )
+            logger.info("✅  ETL процесс для индекса %s завершён успешно!", etl_config.index.value)
         except Exception as e:
-            logger.error(
-                '❌  Ошибка в ETL процессе для индекса %s: %s',
-                etl_config.index.value,
-                str(e),
-                exc_info=True
-            )
+            logger.error("❌  Ошибка в ETL процессе для индекса %s: %s", etl_config.index.value, str(e), exc_info=True)
             raise

@@ -1,7 +1,9 @@
-from pydantic_settings import BaseSettings, SettingsConfigDict
 from logging import config as logging_config
 
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 from .utils.logger import LOGGING_CONFIG
+
 logging_config.dictConfig(LOGGING_CONFIG)
 
 
@@ -28,7 +30,7 @@ class TestSettings(BaseSettings):
 
     def model_post_init(self, __context):
         """Формируем DSN после загрузки переменных"""
-        
+
         self.elasticsearch_dsn = f"http://{self.elasticsearch_host}:{self.elasticsearch_port}/"
         self.redis_dsn = f"redis://{self.redis_user}:{self.redis_password}@{self.redis_host}:{self.redis_port}/{self.redis_db_index}"
         self.service_dsn = f"http://{self.service_host}:{self.service_port}"

@@ -1,13 +1,13 @@
-from elasticsearch import AsyncElasticsearch
-from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
 from contextlib import asynccontextmanager
 
-
-from db.redis_cache import RedisCacheManager
-from db.elastic_dao import ElasticDAO
 from api.routers import main_router
 from core.config import settings
+from db.elastic_dao import ElasticDAO
+from db.redis_cache import RedisCacheManager
+from elasticsearch import AsyncElasticsearch
+from fastapi.responses import ORJSONResponse
+
+from fastapi import FastAPI
 
 
 @asynccontextmanager
@@ -25,7 +25,6 @@ async def lifespan(app: FastAPI):
         yield
 
     finally:
-
         await redis_cache_manager.tear_down()
 
         if elastic_client:
