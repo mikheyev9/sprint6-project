@@ -5,8 +5,8 @@ from functools import lru_cache
 
 from fastapi import HTTPException, Depends
 
-from db.abstract_db import AbstractDAO, get_db
-from models.film import MovieInfoDTO, MovieBaseDTO
+from src.db.abstract_db import AbstractDAO, get_db
+from src.models.film import MovieInfoDTO, MovieBaseDTO
 
 
 @lru_cache()

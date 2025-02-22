@@ -4,23 +4,25 @@ from fastapi.responses import ORJSONResponse
 from contextlib import asynccontextmanager
 
 
-from db.redis_cache import RedisCacheManager
-from db.elastic_dao import ElasticDAO
-from api.routers import main_router
-from core.config import settings
+from src.db.redis_cache import RedisCacheManager
+from src.db.elastic_dao import ElasticDAO
+from src.api.routers import main_router
+from src.core.config import settings
+from src.db.init_postgres import create_first_superuser
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Управление ресурсами FastAPI"""
+    """Управление ресурсами FastAPI."""
 
     elastic_client = None
     redis_cache_manager = RedisCacheManager(settings)
     try:
+        await create_first_superuser()
         await redis_cache_manager.setup()
 
         elastic_client = AsyncElasticsearch(hosts=[settings.elasticsearch_dsn])
-        app.state.db = ElasticDAO(elastic_client)
+        app.state.elastic = ElasticDAO(elastic_client)
 
         yield
 
@@ -34,8 +36,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.project_name,
-    docs_url="/api/openapi",
-    openapi_url="/api/openapi.json",
+    docs_url="/openapi",
+    openapi_url="/openapi.json",
     default_response_class=ORJSONResponse,
     summary=settings.project_summary,
     version=settings.project_version,

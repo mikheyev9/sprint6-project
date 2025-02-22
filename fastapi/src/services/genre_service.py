@@ -7,8 +7,8 @@ import logging
 
 from fastapi import HTTPException, Depends
 
-from db.abstract_db import AbstractDAO, get_db
-from models.genre import GenreDTO
+from src.db.abstract_db import AbstractDAO, get_db
+from src.models.genre import GenreDTO
 
 
 @lru_cache()

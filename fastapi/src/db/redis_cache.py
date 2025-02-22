@@ -6,8 +6,8 @@ from redis.exceptions import ConnectionError as RedisError
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
 
-from core.config import Settings
-from utils.backoff import backoff
+from src.core.config import Settings
+from src.utils.backoff import backoff
 
 
 class CacheInterface(ABC):

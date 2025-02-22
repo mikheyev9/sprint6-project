@@ -3,8 +3,9 @@ import logging
 from fastapi import Request
 from elasticsearch import AsyncElasticsearch, NotFoundError, TransportError
 from elasticsearch.exceptions import ConnectionError as ElasticsearchError
-from db.abstract_db import AbstractDAO
-from utils.backoff import backoff
+
+from src.db.abstract_db import AbstractDAO
+from src.utils.backoff import backoff
  
 logger = logging.getLogger(__name__)
 
