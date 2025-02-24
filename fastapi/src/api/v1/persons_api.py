@@ -1,12 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Path, Query, Request, Response
 from fastapi_cache.decorator import cache
-
-from src.models.person import PersonInfoDTO
 from src.models.film import MovieBaseDTO
+from src.models.person import PersonInfoDTO
 from src.services.film_service import FilmService, get_film_service
 from src.services.person_service import PersonService, get_person_service
+
+from fastapi import APIRouter, Depends, Path, Query, Request, Response
 
 router = APIRouter()
 

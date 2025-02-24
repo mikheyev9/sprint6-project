@@ -1,7 +1,6 @@
 from logging import config as logging_config
-from pydantic import Field, EmailStr
 
-from pydantic import Field
+from pydantic import EmailStr, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .logger import LOGGING_CONFIG
@@ -61,7 +60,7 @@ class ElasticSettings(BaseSettings):
     port: int
     dsn: str = ""
 
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="POSTGRES_")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="ELASTICSEARCH_")
 
     def model_post_init(self, __context):
         """Формируем DSN после загрузки переменных."""
@@ -79,7 +78,7 @@ class PostgresSettings(BaseSettings):
     password: str
     dsn: str = ""
 
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="ELASTICSEARCH_")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="POSTGRES_")
 
     def model_post_init(self, __context):
         """Формируем DSN после загрузки переменных"""
@@ -90,7 +89,7 @@ class PostgresSettings(BaseSettings):
 class AuthSettings(BaseSettings):
     """Настройки авторизации."""
 
-    secret: str = 'SECRET'
+    secret: str = "SECRET"
     first_superuser_email: EmailStr | None = None
     first_superuser_password: str | None = None
     jwt_lifetime_seconds: int = 3600

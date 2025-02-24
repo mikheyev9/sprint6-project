@@ -1,11 +1,9 @@
 from abc import ABC, abstractmethod
 
-from redis import asyncio as aioredis
-from redis.exceptions import ConnectionError as RedisError
-
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
-
+from redis import asyncio as aioredis
+from redis.exceptions import ConnectionError as RedisError
 from src.core.config import RedisSettings
 from src.utils.backoff import backoff
 

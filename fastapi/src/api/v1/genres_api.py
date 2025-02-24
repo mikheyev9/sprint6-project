@@ -1,12 +1,10 @@
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, Path, Request, Response
 from fastapi_cache.decorator import cache
-from fastapi import Query
-
 from src.models.genre import GenreDTO
 from src.services.genre_service import GenreService, get_genre_service
 
+from fastapi import APIRouter, Depends, Path, Query, Request, Response
 
 router = APIRouter()
 

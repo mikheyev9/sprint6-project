@@ -3,7 +3,8 @@ from functools import lru_cache
 from http import HTTPStatus
 from typing import List
 
-from src.db.abstract_db import AbstractDAO, get_db
+from src.db.abstract_db import AbstractDAO
+from src.db.elastic_dao import ElasticDAO, get_elastic
 from src.models.person import PersonInfoDTO
 
 from fastapi import Depends, HTTPException
@@ -11,7 +12,7 @@ from fastapi import Depends, HTTPException
 
 @lru_cache()
 def get_person_service(
-    db: AbstractDAO = Depends(get_db),
+    db: ElasticDAO = Depends(get_elastic),
 ) -> "PersonService":
     return PersonService(db)
 

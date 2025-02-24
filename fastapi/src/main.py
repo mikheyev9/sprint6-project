@@ -1,14 +1,14 @@
-from elasticsearch import AsyncElasticsearch
-from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
 from contextlib import asynccontextmanager
 
-
-from src.db.redis_cache import RedisCacheManager
-from src.db.elastic_dao import ElasticDAO
+from elasticsearch import AsyncElasticsearch
+from fastapi.responses import ORJSONResponse
 from src.api.routers import main_router
 from src.core.config import elastic_settings, project_settings, redis_settings
+from src.db.elastic_dao import ElasticDAO
 from src.db.init_postgres import create_first_superuser
+from src.db.redis_cache import RedisCacheManager
+
+from fastapi import FastAPI
 
 
 @asynccontextmanager
