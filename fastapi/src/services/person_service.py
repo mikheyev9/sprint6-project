@@ -3,8 +3,8 @@ from functools import lru_cache
 from http import HTTPStatus
 from typing import List
 
-from db.abstract_db import AbstractDAO, get_db
-from models.person import PersonInfoDTO
+from src.db.abstract_db import AbstractDAO, get_db
+from src.models.person import PersonInfoDTO
 
 from fastapi import Depends, HTTPException
 

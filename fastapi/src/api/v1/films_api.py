@@ -1,10 +1,10 @@
 from typing import Annotated
 
-from fastapi_cache.decorator import cache
-from models.film import MovieBaseDTO, MovieInfoDTO
-from services.film_service import FilmService, get_film_service
-
 from fastapi import APIRouter, Depends, Path, Query, Request, Response
+from fastapi_cache.decorator import cache
+
+from src.models.film import MovieInfoDTO, MovieBaseDTO
+from src.services.film_service import FilmService, get_film_service
 
 router = APIRouter()
 

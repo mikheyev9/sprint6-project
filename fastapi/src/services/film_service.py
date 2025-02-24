@@ -3,10 +3,10 @@ from functools import lru_cache
 from http import HTTPStatus
 from typing import List
 
-from db.abstract_db import AbstractDAO, get_db
-from models.film import MovieBaseDTO, MovieInfoDTO
-
 from fastapi import Depends, HTTPException
+
+from src.db.abstract_db import AbstractDAO, get_db
+from src.models.film import MovieInfoDTO, MovieBaseDTO
 
 
 @lru_cache()
