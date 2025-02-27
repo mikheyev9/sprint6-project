@@ -57,7 +57,9 @@ class Settings(BaseSettings):
     first_superuser_email: Optional[EmailStr] = None
     first_superuser_password: Optional[str] = None
     jwt_lifetime_seconds: int = 3600
+    jwt_refresh_lifetime_seconds = 86400
     min_password_lenght: int = 3
+
 
     model_config = SettingsConfigDict(
         env_file='.env',
