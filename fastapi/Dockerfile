@@ -12,4 +12,6 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 COPY . .
 
+RUN chmod +x entrypoint.sh
+
 ENTRYPOINT ["/opt/app/entrypoint.sh"]

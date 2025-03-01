@@ -1,29 +1,29 @@
 services:
-  etl:
-    build:
-      context: ./elastic
-      dockerfile: Dockerfile
-    container_name: etl
-    restart: always
-    env_file:
-      - .env
-    depends_on:
-      - theatre-db
-      - elasticsearch
-      - redis
+  # etl:
+  #   build:
+  #     context: ./elastic
+  #     dockerfile: Dockerfile
+  #   container_name: etl
+  #   restart: always
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - theatre-db
+  #     - elasticsearch
+  #     - redis
 
   fastapi:
-    image: fastapi-image
     build:
       context: ./fastapi
       dockerfile: Dockerfile
+    container_name: fastapi
     command: bash -c "alembic upgrade head"
     ports:
       - 8000:8000
     env_file:
       - .env
     depends_on:
-      - etl
+      #- etl
       - redis
 
   redis:

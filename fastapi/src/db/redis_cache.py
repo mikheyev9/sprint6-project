@@ -64,3 +64,4 @@ class RedisCacheManager:
     async def tear_down(self):
         if self.cache:
             await self.cache.close()
+
