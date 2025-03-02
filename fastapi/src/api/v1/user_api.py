@@ -1,4 +1,4 @@
-from src.core.config import settings
+from src.core.config import project_settings
 from src.core.user_core import UserManager, auth_backend, fastapi_users, get_user_manager, refresh_auth_backend
 from src.db.redis_cache import RedisClientFactory
 from src.schemas.user_schema import UserCreate, UserRead, UserUpdate
@@ -31,7 +31,7 @@ router.include_router(
 @router.post("/auth/refresh", tags=["auth"])
 async def refresh_access_token(request: Request, user_manager: UserManager = Depends(get_user_manager)):
     refresh_token = request.cookies.get("refresh_token")
-    redis = await RedisClientFactory.create(settings.redis_dsn)
+    redis = await RedisClientFactory.create(project_settings.redis_dsn)
     payload = await refresh_auth_backend.get_strategy().read_token(refresh_token, user_manager)
 
     if not payload:

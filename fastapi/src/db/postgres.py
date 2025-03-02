@@ -4,7 +4,7 @@ import uuid
 from sqlalchemy import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import Mapped, declarative_base, declared_attr, mapped_column, sessionmaker
-from src.core.config import postgres_settings, project_settings, settings
+from src.core.config import postgres_settings, project_settings
 
 
 
