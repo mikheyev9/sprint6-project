@@ -19,24 +19,9 @@ def main():
     etl_manager = ETLManager(settings, etl_function=etl)
 
     etl_configs = [
-        ETL(
-            Indexes.MOVIES,
-            Tables.FILM_WORK,
-            MovieDTO,
-            Query.get_films_query
-        ),
-        ETL(
-            Indexes.PERSONS,
-            Tables.PERSON,
-            PersonInfoDTO,
-            Query.get_persons_query
-        ),
-        ETL(
-            Indexes.GENRES,
-            Tables.GENRE,
-            GenreDTO,
-            Query.get_genres_query
-        ),
+        ETL(Indexes.MOVIES, Tables.FILM_WORK, MovieDTO, Query.get_films_query),
+        ETL(Indexes.PERSONS, Tables.PERSON, PersonInfoDTO, Query.get_persons_query),
+        ETL(Indexes.GENRES, Tables.GENRE, GenreDTO, Query.get_genres_query),
     ]
 
     threads = []
@@ -48,8 +33,8 @@ def main():
     for thread in threads:
         thread.join()
 
-    logger.info('✅ Все ETL процессы запущены в отдельных потоках!')
+    logger.info("✅ Все ETL процессы запущены в отдельных потоках!")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

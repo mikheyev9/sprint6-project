@@ -1,12 +1,10 @@
 import time
 
 from elasticsearch import Elasticsearch
+from functional.settings import elasticsearch_settings
 
-from functional.settings import test_settings
-
-
-if __name__ == '__main__':
-    es_client = Elasticsearch(hosts=test_settings.elasticsearch_dsn)
+if __name__ == "__main__":
+    es_client = Elasticsearch(hosts=elasticsearch_settings.dsn)
     while True:
         if es_client.ping():
             break

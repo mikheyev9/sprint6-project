@@ -1,14 +1,12 @@
 import uuid
 
 from sqlalchemy import UUID
-from sqlalchemy.orm import Mapped, mapped_column, declarative_base, declared_attr, sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-
-from src.core.config import settings
+from sqlalchemy.orm import Mapped, declarative_base, declared_attr, mapped_column, sessionmaker
+from src.core.config import postgres_settings
 
 
 class PreBase:
-
     @declared_attr
     def __tablename__(cls):
         return cls.__name__.lower()
@@ -18,7 +16,7 @@ class PreBase:
 
 Base = declarative_base(cls=PreBase)
 
-engine = create_async_engine(settings.postgres_dsn)
+engine = create_async_engine(postgres_settings.dsn)
 
 
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession)

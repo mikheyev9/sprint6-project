@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class Builder(ABC):
-    __subclasses: Dict[str, Type['Builder']] = {}
+    __subclasses: Dict[str, Type["Builder"]] = {}
 
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)

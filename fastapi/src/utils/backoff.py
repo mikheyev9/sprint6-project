@@ -5,7 +5,6 @@ from functools import wraps
 from elasticsearch.exceptions import ConnectionError as ElasticsearchError
 from redis.exceptions import ConnectionError as RedisError
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -36,20 +35,19 @@ def backoff(
 
                     logger.exception(
                         'Ошибка подключения в функции "%s": %s. '
-                        'Повторная попытка через %s секунд... (Попытка %d/%d)',
+                        "Повторная попытка через %s секунд... (Попытка %d/%d)",
                         func.__name__,
                         error,
                         sleep_time,
                         attempts,
-                        max_attempts
+                        max_attempts,
                     )
 
                     time.sleep(sleep_time)
 
             logger.error(
-                "Достигнуто максимальное количество "
-                "попыток в функции \"%s\". Функция завершилась с ошибкой.",
-                func.__name__
+                "Достигнуто максимальное количество " 'попыток в функции "%s". Функция завершилась с ошибкой.',
+                func.__name__,
             )
             return None
 

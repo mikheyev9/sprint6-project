@@ -1,12 +1,12 @@
 import logging
 
-from fastapi import Request
 from elasticsearch import AsyncElasticsearch, NotFoundError, TransportError
 from elasticsearch.exceptions import ConnectionError as ElasticsearchError
-
 from src.db.abstract_db import AbstractDAO
 from src.utils.backoff import backoff
- 
+
+from fastapi import Request
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,27 +26,26 @@ class ElasticDAO(AbstractDAO):
         except NotFoundError:
             logger.warning(f"Объект в {table} не найден: id={id_obj}")
         except TransportError as e:
-            logger.error(
-                f"При запросе id={id_obj} к {table} произошла ошибка: {e}"
-            )
+            logger.error(f"При запросе id={id_obj} к {table} произошла ошибка: {e}")
         return None
 
     @backoff(ElasticsearchError)
     async def search(
-            self, table: str,
-            offset: int = 0,
-            limit: int = 50,
-            sort: list[dict[str, str]] | None = None,
-            filters: dict[str, any] | None = None,
+        self,
+        table: str,
+        offset: int = 0,
+        limit: int = 50,
+        sort: list[dict[str, str]] | None = None,
+        filters: dict[str, any] | None = None,
     ):
         """Поиск объектов в таблице."""
         must_conditions = []
-        
+
         filter_conditions = []
-        
+
         if filters is None:
             filters = {}
-        
+
         search_query = {
             "size": limit,
             "from": offset,
@@ -56,17 +55,11 @@ class ElasticDAO(AbstractDAO):
         for key, value in filters.items():
             if key.count(".") == 1:
                 path = key.split(".")[0]
-                filter_conditions.append({
-                    "nested": {
-                        "path": path, "query": {
-                            "bool": {"must": [{"match": {key: value}}]}
-                        }
-                    }
-                })
+                filter_conditions.append(
+                    {"nested": {"path": path, "query": {"bool": {"must": [{"match": {key: value}}]}}}}
+                )
             if key.count(".") == 0:
-                must_conditions.append({
-                    "multi_match": {"query": value, "fields": [key]}
-                })
+                must_conditions.append({"multi_match": {"query": value, "fields": [key]}})
 
         if must_conditions:
             search_query["query"]["bool"]["must"] = must_conditions
@@ -82,12 +75,10 @@ class ElasticDAO(AbstractDAO):
         except NotFoundError:
             logger.warning(f"Объекты в {table} не найдены: query={search_query}")
         except TransportError as e:
-            logger.error(
-                f"При запросе {search_query} к {table} произошла ошибка: {e}"
-            )
+            logger.error(f"При запросе {search_query} к {table} произошла ошибка: {e}")
         return []
 
- 
+
 async def get_elastic(request: Request) -> ElasticDAO:
     """Получение объекта ElasticSearchDB."""
     return request.app.state.elastic

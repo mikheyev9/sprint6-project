@@ -1,11 +1,14 @@
-from pydantic import Field
-from .mixins import UUIDMixin
-from .dto import AbstractDTO
 from uuid import UUID, uuid4
+
+from pydantic import Field
+
+from .dto import AbstractDTO
+from .mixins import UUIDMixin
 
 
 class GenreDTO(UUIDMixin):
     """Модель жанров"""
+
     name: str = Field(default_factory=str)
 
 
