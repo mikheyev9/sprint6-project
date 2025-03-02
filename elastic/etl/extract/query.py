@@ -58,7 +58,8 @@ class Query:
                 ) AS genre,
                 COALESCE(array_agg(DISTINCT p.full_name) FILTER (WHERE pfw.role = 'actor'), ARRAY[]::text[]) AS actors_names,
                 COALESCE(array_agg(DISTINCT p.full_name) FILTER (WHERE pfw.role = 'director'), ARRAY[]::text[]) AS directors_names,
-                COALESCE(array_agg(DISTINCT p.full_name) FILTER (WHERE pfw.role = 'writer'), ARRAY[]::text[]) AS writers_names
+                COALESCE(array_agg(DISTINCT p.full_name) FILTER (WHERE pfw.role = 'writer'), ARRAY[]::text[]) AS writers_names,
+                MAX(fw.modified) AS modified -- Добавляем MAX(fw.modified), чтобы корректно агрегировать
             FROM content.film_work fw
             LEFT JOIN content.person_film_work pfw ON pfw.film_work_id = fw.id
             LEFT JOIN content.person p ON p.id = pfw.person_id
@@ -67,10 +68,11 @@ class Query:
             WHERE fw.modified > {last_modified}
                 OR p.modified > {last_modified}
                 OR g.modified > {last_modified}
-            GROUP BY fw.id
-            ORDER BY fw.modified
+            GROUP BY fw.id, fw.title, fw.description, fw.rating
+            ORDER BY MAX(fw.modified)
             """
         ).format(last_modified=modified_time)
+
 
     @staticmethod
     def check_modified(table, modified_time):
@@ -102,7 +104,7 @@ class Query:
     @staticmethod
     def get_persons_query(modified_time):
         return SQL(
-            """
+             """
             WITH person_roles AS (SELECT pfw.person_id,
                                          pfw.film_work_id,
                                          COALESCE(
@@ -127,7 +129,7 @@ class Query:
             FROM content.person AS p
                      LEFT JOIN person_roles ON person_roles.person_id = p.id
             WHERE p.modified > {last_modified}
-            GROUP BY p.id
+            GROUP BY p.id, p.full_name
             ORDER BY MAX(p.modified);
             """
         ).format(last_modified=modified_time)
