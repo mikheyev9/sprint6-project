@@ -1,6 +1,7 @@
 from pydantic import Field
-from .mixins import UUIDMixin
+
 from .genre import MoviesGenreDTO
+from .mixins import UUIDMixin
 
 
 class MovieDTO(UUIDMixin):

@@ -1,16 +1,14 @@
 import logging
-from logging import config as logging_config
 from dataclasses import dataclass
-from typing import List, Dict
-
-from elasticsearch.exceptions import ConnectionError
-from elasticsearch.helpers import bulk
+from logging import config as logging_config
+from typing import Dict, List
 
 from config.elasticsearch import ElasticsearchClient
+from elasticsearch.exceptions import ConnectionError
+from elasticsearch.helpers import bulk
 from state.state import State
 from utils.backoff import backoff
 from utils.logger import LOGGING_CONFIG
-
 
 logger = logging.getLogger(__name__)
 logging_config.dictConfig(LOGGING_CONFIG)
@@ -27,23 +25,15 @@ class ElasticsearchLoader:
 
     @backoff(ConnectionError)
     def bulk_load(self, batch: List[Dict], last_mod: str) -> None:
-        """Метод для выполнения массовой загрузки.
-        """
+        """Метод для выполнения массовой загрузки."""
 
-        logger.info('Началась массовая загрузка для индекса: %s', self.index)
+        logger.info("Началась массовая загрузка для индекса: %s", self.index)
         bulk(
             client=self.client.connection,
             actions=batch,
             index=self.index,
             chunk_size=self.batch_size,
         )
-        logger.info(
-            'Массовая загрузка для индекса %s завершена успешно',
-            self.index
-        )
+        logger.info("Массовая загрузка для индекса %s завершена успешно", self.index)
         self.state.set_state(self.index, last_mod)
-        logger.info(
-            'Состояние индекса %s обновлено на: %s',
-            self.index,
-            last_mod
-        )
+        logger.info("Состояние индекса %s обновлено на: %s", self.index, last_mod)

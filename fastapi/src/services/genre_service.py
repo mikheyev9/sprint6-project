@@ -3,7 +3,8 @@ from functools import lru_cache
 from http import HTTPStatus
 from typing import Any, Dict, List, Optional
 
-from src.db.abstract_db import AbstractDAO, get_db
+from src.db.abstract_db import AbstractDAO
+from src.db.elastic_dao import ElasticDAO, get_elastic
 from src.models.genre import GenreDTO
 
 from fastapi import Depends, HTTPException
@@ -11,7 +12,7 @@ from fastapi import Depends, HTTPException
 
 @lru_cache()
 def get_genre_service(
-    db: AbstractDAO = Depends(get_db),
+    db: ElasticDAO = Depends(get_elastic),
 ) -> "GenreService":
     return GenreService(db)
 

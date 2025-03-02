@@ -1,8 +1,14 @@
 from datetime import datetime
-from typing import Annotated, AsyncGenerator, Union
+from typing import Annotated, AsyncGenerator, Optional, Union
 from uuid import UUID
 
-from fastapi_users import BaseUserManager, FastAPIUsers, InvalidPasswordException, UUIDIDMixin
+from fastapi import Depends, Request
+from fastapi_users import (
+    BaseUserManager,
+    FastAPIUsers,
+    UUIDIDMixin,
+    InvalidPasswordException,
+)
 from fastapi_users.authentication import AuthenticationBackend, BearerTransport, JWTStrategy
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,7 +21,6 @@ from src.schemas.user_schema import UserCreate
 
 from fastapi import Depends, Request
 
-
 async def get_user_db(
     session: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> AsyncGenerator[SQLAlchemyUserDatabase, None]:
@@ -26,7 +31,7 @@ bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
 
 
 def get_jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=settings.secret, lifetime_seconds=settings.jwt_lifetime_seconds)
+    return JWTStrategy(secret=auth_settings.secret, lifetime_seconds=auth_settings.jwt_lifetime_seconds)
 
 
 def get_refresh_jwt_strategy() -> JWTStrategy:
@@ -50,8 +55,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
     async def validate_password(self, password: str, user: Union[UserCreate, User]) -> None:
         if len(password) < settings.min_password_length:
             raise InvalidPasswordException(
-                reason=f"Пароль должен содержать не менее {settings.min_password_length} символов"
-            )
+                reason=f"Пароль должен содержать не менее {settings.min_password_length} символов")
         if user.email in password:
             raise InvalidPasswordException(reason="Пароль не может содержать ваш email")
 

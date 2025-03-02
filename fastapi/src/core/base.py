@@ -7,4 +7,5 @@ from src.models.film import MovieBaseDTO, MovieInfoDTO  # noqa
 from src.models.genre import GenreDTO, GenresDTO  # noqa
 from src.models.mixins import UUIDMixin  # noqa
 from src.models.person import FilmDTO, PersonDTO, PersonInfoDTO  # noqa
+from src.models.role import Role, UserRole  # noqa
 from src.models.user import User  # noqa
