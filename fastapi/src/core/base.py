@@ -2,6 +2,7 @@
 
 """Импорты класса Base и всех моделей для Alembic."""
 from src.db.postgres import Base  # noqa
+from src.models.auth_history import AuthHistory  # noqa
 from src.models.film import MovieBaseDTO, MovieInfoDTO  # noqa
 from src.models.genre import GenreDTO, GenresDTO  # noqa
 from src.models.mixins import UUIDMixin  # noqa

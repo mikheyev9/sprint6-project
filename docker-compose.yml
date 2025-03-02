@@ -1,16 +1,16 @@
 services:
-  # etl:
-  #   build:
-  #     context: ./elastic
-  #     dockerfile: Dockerfile
-  #   container_name: etl
-  #   restart: always
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     - theatre-db
-  #     - elasticsearch
-  #     - redis
+  etl:
+    build:
+      context: ./elastic
+      dockerfile: Dockerfile
+    container_name: etl
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - theatre-db
+      - elasticsearch
+      - redis
 
   fastapi:
     build:
@@ -23,7 +23,7 @@ services:
     env_file:
       - .env
     depends_on:
-      #- etl
+      - etl
       - redis
 
   redis:

@@ -1,17 +1,11 @@
 import jwt
-import os
-from dotenv import load_dotenv
 
-
-load_dotenv(".env")
-
-
-jwt_secret = os.environ.get("SECRET")
+from src.core.config import settings
 
 
 def encode_jwt(data):
-    return jwt.encode(data, jwt_secret, algorithm="HS256", audience="fastapi-users:auth")
+    return jwt.encode(data, settings.secret, algorithm="HS256", audience="fastapi-users:auth")
 
 
 def decode_jwt(token):
-    return jwt.decode(token, jwt_secret, algorithms="HS256", audience="fastapi-users:auth")
+    return jwt.decode(token, settings.secret, algorithms="HS256", audience="fastapi-users:auth")
