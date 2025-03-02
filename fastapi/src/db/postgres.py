@@ -1,5 +1,4 @@
 import uuid
-from asyncio import anext
 
 from sqlalchemy import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine

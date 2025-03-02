@@ -2,22 +2,20 @@ import asyncio
 import os
 from logging.config import fileConfig
 
+from alembic import context
 from dotenv import load_dotenv
 from sqlalchemy import pool
-from sqlalchemy.engine import Connection
+from sqlalchemy.engine import Connection  # noqa
 from sqlalchemy.ext.asyncio import async_engine_from_config
-
-from alembic import context
-
 from src.core.base import Base
 
-load_dotenv('.env')
+load_dotenv(".env")
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
 
-config.set_main_option('sqlalchemy.url', os.environ['POSTGRES_URL'])
+config.set_main_option("sqlalchemy.url", os.environ["POSTGRES_URL"])
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -95,4 +93,3 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
-
