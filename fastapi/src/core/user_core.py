@@ -7,7 +7,7 @@ from fastapi_users.authentication import AuthenticationBackend, BearerTransport,
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.config import settings
-from src.db.postgres import get_async_session
+from src.db.postgres import get_async_session, get_session
 from src.db.redis_cache import RedisClientFactory
 from src.models.auth_history import AuthHistory
 from src.models.user import User
@@ -63,12 +63,12 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
         refresh_token = await refresh_auth_backend.get_strategy().write_token(user)
         response.set_cookie(key="refresh_token", value=refresh_token, httponly=True)
 
-        async with get_async_session() as session:
-            auth_entry = AuthHistory(
-                user_id=user.id, user_agent=request.headers.get("User-Agent"), timestamp=datetime.now()
-            )
-            session.add(auth_entry)
-            await session.commit()
+        session = await get_session()
+        auth_entry = AuthHistory(
+            user_id=user.id, user_agent=request.headers.get("User-Agent"), timestamp=datetime.now()
+        )
+        session.add(auth_entry)
+        await session.commit()
 
         await redis.set(f"refresh_token:{user.id}", refresh_token)
 
