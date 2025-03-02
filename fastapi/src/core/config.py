@@ -31,6 +31,7 @@ class ProjectSettings(BaseSettings):
             },
         ]
     )
+    debug: bool = False
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="PROJECT_")
 
