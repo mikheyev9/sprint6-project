@@ -24,7 +24,7 @@ async def get_refresh_data(request: Request) -> NoReturn | dict:
 
     if refresh_token_data:
         decoded_data = decode_jwt(refresh_token_data)
-        return refresh_token_data
+        return decoded_data
 
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh Data is Invalid"

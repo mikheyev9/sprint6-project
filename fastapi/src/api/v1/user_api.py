@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Request, HTTPException, status
 from src.core.user_core import UserManager, auth_backend, refresh_auth_backend, fastapi_users, get_user_manager
 from src.schemas.user_schema import UserCreate, UserRead, UserUpdate
 from src.core.config import settings
@@ -31,10 +31,10 @@ router.include_router(
 
 @router.post("/auth/refresh", tags=["auth"])
 async def refresh_access_token(
-    refresh_token: dict = Depends(get_refresh_data),
+    request: Request,
     user_manager: UserManager = Depends(get_user_manager)
 ):
-    
+    refresh_token = request.cookies.get('refresh_token')
     redis = await RedisClientFactory.create(settings.redis_dsn)
     payload = await refresh_auth_backend.get_strategy().read_token(refresh_token, user_manager)
 
@@ -56,8 +56,3 @@ async def refresh_access_token(
 
     return {"access_token": new_access_token}
 
-router.include_router(
-    fastapi_users.get_auth_router(refresh_auth_backend),
-    prefix='/auth/refresh',
-    tags=['auth'],
-)

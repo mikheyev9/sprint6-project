@@ -10,7 +10,7 @@ jwt_secret = os.environ.get("SECRET")
 
 
 def encode_jwt(data):
-    return jwt.encode(data, jwt_secret, algorithm="HS256")
+    return jwt.encode(data, jwt_secret, algorithm="HS256", audience="fastapi-users:auth")
 
 
 def decode_jwt(token):
