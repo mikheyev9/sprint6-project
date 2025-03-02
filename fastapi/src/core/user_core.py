@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated, AsyncGenerator, Union
 from uuid import UUID
 
@@ -8,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.core.config import settings
 from src.db.postgres import get_async_session
 from src.db.redis_cache import RedisClientFactory
+from src.models.auth_history import AuthHistory
 from src.models.user import User
 from src.schemas.user_schema import UserCreate
 
@@ -45,14 +47,10 @@ refresh_auth_backend = AuthenticationBackend(
 
 
 class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
-    async def validate_password(
-        self,
-        password: str,
-        user: Union[UserCreate, User],
-    ) -> None:
-        if len(password) < settings.min_password_lenght:
+    async def validate_password(self, password: str, user: Union[UserCreate, User]) -> None:
+        if len(password) < settings.min_password_length:
             raise InvalidPasswordException(
-                reason=f"Пароль должен содержать не менее {settings.min_password_lenght} символов"
+                reason=f"Пароль должен содержать не менее {settings.min_password_length} символов"
             )
         if user.email in password:
             raise InvalidPasswordException(reason="Пароль не может содержать ваш email")
@@ -60,11 +58,19 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
     async def on_after_register(self, user: User, request: Request | None = None) -> None:
         print(f"Пользователь {user.email} зарегистрирован.")
 
-    async def on_after_login(self, user, request=None, response=None):
+    async def on_after_login(self, user: User, request: Request | None = None, response=None) -> None:
         redis = await RedisClientFactory.create(settings.redis_dsn)
         refresh_token = await refresh_auth_backend.get_strategy().write_token(user)
-        await redis.set(f"refresh_token:{user.id}", refresh_token)
         response.set_cookie(key="refresh_token", value=refresh_token, httponly=True)
+
+        async with get_async_session() as session:
+            auth_entry = AuthHistory(
+                user_id=user.id, user_agent=request.headers.get("User-Agent"), timestamp=datetime.now()
+            )
+            session.add(auth_entry)
+            await session.commit()
+
+        await redis.set(f"refresh_token:{user.id}", refresh_token)
 
 
 async def get_user_manager(

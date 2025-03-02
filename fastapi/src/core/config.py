@@ -1,11 +1,10 @@
+from logging import config as logging_config
 from typing import Optional
 
-from logging import config as logging_config
-from pydantic import Field, EmailStr
+from pydantic import EmailStr, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .logger import LOGGING_CONFIG
-
 
 logging_config.dictConfig(LOGGING_CONFIG)
 
@@ -16,20 +15,22 @@ class Settings(BaseSettings):
     project_summary: str
     project_version: str
     project_terms_of_service: str
-    project_tags: list = Field(default=[
-        {
-            "name": 'films',
-            "description": 'Operations with films.',
-        },
-        {
-            "name": 'genres',
-            "description": 'Operations with genres.',
-        },
-        {
-            "name": 'persons',
-            "description": 'Operations with persons.',
-        },
-    ])
+    project_tags: list = Field(
+        default=[
+            {
+                "name": "films",
+                "description": "Operations with films.",
+            },
+            {
+                "name": "genres",
+                "description": "Operations with genres.",
+            },
+            {
+                "name": "persons",
+                "description": "Operations with persons.",
+            },
+        ]
+    )
 
     # Redis
     redis_host: str
@@ -53,19 +54,14 @@ class Settings(BaseSettings):
     postgres_dsn: str = ""
 
     # Auth
-    secret: str = 'SECRET'
+    secret: str = "SECRET"
     first_superuser_email: Optional[EmailStr] = None
     first_superuser_password: Optional[str] = None
     jwt_lifetime_seconds: int = 3600
     jwt_refresh_lifetime_seconds: int = 86400
-    min_password_lenght: int = 3
+    min_password_length: int = 3
 
-
-    model_config = SettingsConfigDict(
-        env_file='.env',
-        env_file_encoding='utf-8',
-        extra='ignore'
-    )
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     def model_post_init(self, __context):
         """Формируем DSN после загрузки переменных"""
