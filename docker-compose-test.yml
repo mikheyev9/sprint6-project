@@ -8,7 +8,7 @@ services:
     env_file:
       - .env
     ports:
-      - 8000:8000
+      - "8000:8000"
     depends_on:
       - elasticsearch
       - redis
@@ -47,4 +47,4 @@ services:
       - xpack.security.enabled=false
       - ES_JAVA_OPTS=-Xms2048m -Xmx2048m
     ports:
-      - 9200:9200
+      - "9200:9200"

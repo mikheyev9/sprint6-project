@@ -6,10 +6,8 @@ class BaseStorage(abc.ABC):
 
     @abc.abstractmethod
     def save_state(self, key: str, value: str) -> None:
-        """Сохранить состояние в хранилище.
-        """
+        """Сохранить состояние в хранилище."""
 
     @abc.abstractmethod
     def retrieve_state(self, key: str) -> str | None:
-        """Извлечь состояние из хранилища.
-        """
+        """Извлечь состояние из хранилища."""

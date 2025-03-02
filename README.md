@@ -37,4 +37,3 @@
 1. Запустите тестовое окружение в Docker
    ```bash
    docker compose -f docker-compose-test.yml up --build
-

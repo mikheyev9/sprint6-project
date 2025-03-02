@@ -1,5 +1,6 @@
-from typing import Annotated, Optional, Union, AsyncGenerator
+from typing import Annotated, AsyncGenerator, Optional, Union
 from uuid import UUID
+
 from fastapi import Depends, Request
 from fastapi_users import (
     BaseUserManager,
@@ -18,7 +19,6 @@ from src.core.config import settings
 from src.db.redis_cache import RedisClientFactory
 
 
-
 async def get_user_db(
     session: Annotated[AsyncSession, Depends(get_async_session)]
 ) -> AsyncGenerator[SQLAlchemyUserDatabase, None]:
@@ -27,7 +27,7 @@ async def get_user_db(
 bearer_transport = BearerTransport(tokenUrl="auth/jwt/login")
 
 def get_jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=settings.secret, lifetime_seconds=settings.jwt_lifetime_seconds)
+    return JWTStrategy(secret=auth_settings.secret, lifetime_seconds=auth_settings.jwt_lifetime_seconds)
 
 def get_refresh_jwt_strategy() -> JWTStrategy:
     return JWTStrategy(secret=settings.secret, lifetime_seconds=settings.jwt_refresh_lifetime_seconds)
@@ -50,14 +50,12 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
         password: str,
         user: Union[UserCreate, User],
     ) -> None:
-        if len(password) < settings.min_password_lenght:
+        if len(password) < auth_settings.min_password_lenght:
             raise InvalidPasswordException(
-                reason=f"Пароль должен содержать не менее {settings.min_password_lenght} символов"
+                reason=f"Пароль должен содержать не менее {auth_settings.min_password_lenght} символов"
             )
         if user.email in password:
-            raise InvalidPasswordException(
-                reason="Пароль не может содержать ваш email"
-            )
+            raise InvalidPasswordException(reason="Пароль не может содержать ваш email")
 
     async def on_after_register(
         self, user: User, request: Request | None = None
@@ -72,7 +70,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
 
 
 async def get_user_manager(
-    user_db: SQLAlchemyUserDatabase = Depends(get_user_db)
+    user_db: SQLAlchemyUserDatabase = Depends(get_user_db),
 ) -> AsyncGenerator[UserManager, None]:
     yield UserManager(user_db)
 

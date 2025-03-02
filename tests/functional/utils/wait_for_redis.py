@@ -1,12 +1,10 @@
 import time
 
+from functional.settings import redis_settings
 from redis import Redis
 
-from functional.settings import test_settings
-
-
-if __name__ == '__main__':
-    redis_client = Redis(host=test_settings.redis_host, port=test_settings.redis_port)
+if __name__ == "__main__":
+    redis_client = Redis(host=redis_settings.host, port=redis_settings.port)
     while True:
         if redis_client.ping():
             break
