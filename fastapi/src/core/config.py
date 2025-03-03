@@ -10,7 +10,7 @@ from .logger import LOGGING_CONFIG
 logging_config.dictConfig(LOGGING_CONFIG)
 
 
-class Settings(BaseSettings):
+class ProjectSettings(BaseSettings):
     # FastAPI
     project_name: str
     project_summary: str
@@ -68,9 +68,6 @@ class Settings(BaseSettings):
         extra='ignore'
     )
     debug: bool = False
-
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="PROJECT_")
-
 
 class RedisSettings(BaseSettings):
     """Настройки Redis."""

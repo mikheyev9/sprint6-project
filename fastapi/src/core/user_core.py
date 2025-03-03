@@ -12,7 +12,7 @@ from fastapi_users import (
 from fastapi_users.authentication import AuthenticationBackend, BearerTransport, JWTStrategy
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.core.config import settings
+from src.core.config import project_settings, auth_settings
 from src.db.postgres import get_async_session, get_session
 from src.db.redis_cache import RedisClientFactory
 from src.models.auth_history import AuthHistory
@@ -35,7 +35,7 @@ def get_jwt_strategy() -> JWTStrategy:
 
 
 def get_refresh_jwt_strategy() -> JWTStrategy:
-    return JWTStrategy(secret=settings.secret, lifetime_seconds=settings.jwt_refresh_lifetime_seconds)
+    return JWTStrategy(secret=project_settings.secret, lifetime_seconds=project_settings.jwt_refresh_lifetime_seconds)
 
 
 auth_backend = AuthenticationBackend(
@@ -53,9 +53,9 @@ refresh_auth_backend = AuthenticationBackend(
 
 class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
     async def validate_password(self, password: str, user: Union[UserCreate, User]) -> None:
-        if len(password) < settings.min_password_length:
+        if len(password) < project_settings.min_password_length:
             raise InvalidPasswordException(
-                reason=f"Пароль должен содержать не менее {settings.min_password_length} символов")
+                reason=f"Пароль должен содержать не менее {project_settings.min_password_length} символов")
         if user.email in password:
             raise InvalidPasswordException(reason="Пароль не может содержать ваш email")
 
@@ -63,7 +63,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
         print(f"Пользователь {user.email} зарегистрирован.")
 
     async def on_after_login(self, user: User, request: Request | None = None, response=None) -> None:
-        redis = await RedisClientFactory.create(settings.redis_dsn)
+        redis = await RedisClientFactory.create(project_settings.redis_dsn)
         refresh_token = await refresh_auth_backend.get_strategy().write_token(user)
         response.set_cookie(key="refresh_token", value=refresh_token, httponly=True)
 

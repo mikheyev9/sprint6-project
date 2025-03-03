@@ -34,14 +34,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title=project_settings.name,
+    title=project_settings.project_name,
     docs_url="/openapi",
     openapi_url="/openapi.json",
     default_response_class=ORJSONResponse,
-    summary=project_settings.summary,
-    version=project_settings.version,
-    terms_of_service=project_settings.terms_of_service,
-    openapi_tags=project_settings.tags,
+    summary=project_settings.project_summary,
+    version=project_settings.project_version,
+    terms_of_service=project_settings.project_terms_of_service,
+    openapi_tags=project_settings.project_tags,
     lifespan=lifespan,
 )
 
