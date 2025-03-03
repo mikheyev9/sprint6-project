@@ -7,7 +7,6 @@ from sqlalchemy.orm import Mapped, declarative_base, declared_attr, mapped_colum
 from src.core.config import postgres_settings, project_settings
 
 
-
 class PreBase:
     @declared_attr
     def __tablename__(self) -> str:
@@ -21,16 +20,9 @@ Base = declarative_base(cls=PreBase)
 
 engine = create_async_engine(postgres_settings.dsn, echo=project_settings.debug)
 
-
 AsyncSessionLocal = sessionmaker(engine, class_=AsyncSession)
 
 
 async def get_async_session():
     async with AsyncSessionLocal() as async_session:
         yield async_session
-
-
-async def get_session():
-    async_gen = get_async_session()
-    session = await anext(async_gen)
-    return session

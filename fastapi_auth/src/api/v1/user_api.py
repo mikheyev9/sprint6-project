@@ -1,6 +1,14 @@
 from src.core.config import project_settings
-from src.core.user_core import UserManager, auth_backend, fastapi_users, get_user_manager, refresh_auth_backend
+from src.core.user_core import (
+    UserManager,
+    auth_backend,
+    current_user,
+    fastapi_users,
+    get_user_manager,
+    refresh_auth_backend,
+)
 from src.db.redis_cache import RedisClientFactory
+from src.models.user import User
 from src.schemas.user_schema import UserCreate, UserRead, UserUpdate
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -9,13 +17,12 @@ router = APIRouter()
 
 router.include_router(
     fastapi_users.get_auth_router(auth_backend),
-    prefix="/auth/jwt",
+    prefix="/jwt",
     tags=["auth"],
 )
 
 router.include_router(
     fastapi_users.get_register_router(UserRead, UserCreate),
-    prefix="/auth",
     tags=["auth"],
 )
 
@@ -28,8 +35,15 @@ router.include_router(
 )
 
 
-@router.post("/auth/refresh", tags=["auth"])
-async def refresh_access_token(request: Request, user_manager: UserManager = Depends(get_user_manager)):
+@router.post(
+    "/refresh",
+    tags=["auth"],
+    summary="Refresh Access Token",
+    description="Refreshes the access token. Returns a new access token if successful.",
+)
+async def refresh_access_token(
+    request: Request, user_manager: UserManager = Depends(get_user_manager), user: User = Depends(current_user)
+):
     refresh_token = request.cookies.get("refresh_token")
     redis = await RedisClientFactory.create(project_settings.redis_dsn)
     payload = await refresh_auth_backend.get_strategy().read_token(refresh_token, user_manager)

@@ -161,3 +161,6 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 .idea/
 .vscode/
+fastapi/entrypoint.sh
+elastic/elastic.sh
+fastapi_auth/entrypoint.sh
