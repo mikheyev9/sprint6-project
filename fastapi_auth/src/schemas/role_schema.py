@@ -32,3 +32,10 @@ class RoleGetFull(RoleCreate):
     """Схема для получения полной информации о роли."""
 
     id: UUID
+
+
+class UserRoleCreate(AbstractDTO):
+    """Схема для создания роли пользователя."""
+
+    user_id: UUID
+    role_id: UUID

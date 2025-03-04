@@ -36,15 +36,18 @@ class RoleService:
 
     async def update(self, role_id: UUID, data: RoleUpdate) -> RoleGetFull:
         """Обновление роли."""
-        role = await self.role_crud.get(role_id, self.session)
-        if role is None:
-            raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Role not found")
+        role = await self.get_model(role_id)
         role_obj = await self.role_crud.update(role, data, self.session)
         return RoleGetFull.model_validate(role_obj)
 
     async def delete(self, role_id: UUID) -> None:
         """Удаление роли."""
+        role = await self.get_model(role_id)
+        await self.role_crud.remove(role, self.session)
+
+    async def get_model(self, role_id: UUID) -> Role:
+        """Получение роли по id."""
         role = await self.role_crud.get(role_id, self.session)
         if role is None:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Role not found")
-        await self.role_crud.remove(role, self.session)
+        return role
