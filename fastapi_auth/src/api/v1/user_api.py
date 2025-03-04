@@ -1,7 +1,11 @@
+from typing import List
+from uuid import UUID
+
 from src.core.config import project_settings
 from src.core.user_core import (
     UserManager,
     auth_backend,
+    current_superuser,
     current_user,
     fastapi_users,
     get_user_manager,
@@ -9,7 +13,10 @@ from src.core.user_core import (
 )
 from src.db.redis_cache import RedisClientFactory
 from src.models.user import User
+from src.schemas.response_schema import ResponseSchema
+from src.schemas.role_schema import RoleGetFull
 from src.schemas.user_schema import UserCreate, UserRead, UserUpdate
+from src.services.user_service import UserService, get_user_service
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 
@@ -65,3 +72,37 @@ async def refresh_access_token(
     new_access_token = await auth_backend.get_strategy().write_token(payload)
 
     return {"access_token": new_access_token}
+
+
+@router.get("/{user_id}/roles", tags=["users"], summary="Get User Roles", response_model=List[RoleGetFull])
+async def get_user_roles(
+    user_id: UUID,
+    user_service: UserService = Depends(get_user_service),
+    user: User = Depends(current_superuser),
+):
+    """Список всех ролей установленный для пользователя. Доступно только для суперпользователей."""
+    return await user_service.get_roles(user_id)
+
+
+@router.post("/{user_id}/role", tags=["users"], summary="Add Role to User", response_model=ResponseSchema)
+async def add_role_to_user(
+    user_id: UUID,
+    role_id: UUID,
+    user_service: UserService = Depends(get_user_service),
+    user: User = Depends(current_superuser),
+) -> ResponseSchema:
+    """Добавить роль пользователю. Доступно только для суперпользователей."""
+    await user_service.add_role(user_id, role_id)
+    return ResponseSchema(detail="Role added successfully")
+
+
+@router.delete("/{user_id}/role", tags=["users"], summary="Remove Role from User", response_model=ResponseSchema)
+async def remove_role_from_user(
+    user_id: UUID,
+    role_id: UUID,
+    user_service: UserService = Depends(get_user_service),
+    user: User = Depends(current_superuser),
+) -> ResponseSchema:
+    """Удалить роль у пользователя. Доступно только для суперпользователей."""
+    await user_service.delete_role(user_id, role_id)
+    return ResponseSchema(detail="Role removed successfully")
