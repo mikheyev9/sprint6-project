@@ -1,31 +1,30 @@
-from elasticsearch import AsyncElasticsearch
-from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
 from contextlib import asynccontextmanager
 
+from elasticsearch import AsyncElasticsearch
+from fastapi.responses import ORJSONResponse
+from src.api.routers import main_router
+from src.core.config import elastic_settings, project_settings, redis_settings
+from src.db.elastic_dao import ElasticDAO
+from src.db.redis_cache import RedisCacheManager
 
-from db.redis_cache import RedisCacheManager
-from db.elastic_dao import ElasticDAO
-from api.routers import main_router
-from core.config import settings
+from fastapi import FastAPI
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Управление ресурсами FastAPI"""
+    """Управление ресурсами FastAPI."""
 
     elastic_client = None
-    redis_cache_manager = RedisCacheManager(settings)
+    redis_cache_manager = RedisCacheManager(redis_settings)
     try:
         await redis_cache_manager.setup()
 
-        elastic_client = AsyncElasticsearch(hosts=[settings.elasticsearch_dsn])
-        app.state.db = ElasticDAO(elastic_client)
+        elastic_client = AsyncElasticsearch(hosts=[elastic_settings.dsn])
+        app.state.elastic = ElasticDAO(elastic_client)
 
         yield
 
     finally:
-
         await redis_cache_manager.tear_down()
 
         if elastic_client:
@@ -33,14 +32,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title=settings.project_name,
+    title=project_settings.project_name,
     docs_url="/api/openapi",
     openapi_url="/api/openapi.json",
     default_response_class=ORJSONResponse,
-    summary=settings.project_summary,
-    version=settings.project_version,
-    terms_of_service=settings.project_terms_of_service,
-    openapi_tags=settings.project_tags,
+    summary=project_settings.project_summary,
+    version=project_settings.project_version,
+    terms_of_service=project_settings.project_terms_of_service,
+    openapi_tags=project_settings.project_tags,
     lifespan=lifespan,
 )
 

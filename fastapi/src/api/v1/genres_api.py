@@ -1,21 +1,19 @@
 from typing import Annotated, List
 
-from fastapi import APIRouter, Depends, Path, Request, Response
-
-from models.genre import GenreDTO
-from services.genre_service import GenreService, get_genre_service
 from fastapi_cache.decorator import cache
-from fastapi import Query
+from src.models.genre import GenreDTO
+from src.services.genre_service import GenreService, get_genre_service
 
+from fastapi import APIRouter, Depends, Path, Query, Request, Response
 
 router = APIRouter()
 
 
 @router.get(
-    '/',
+    "/",
     response_model=List[GenreDTO],
-    summary='Get genres',
-    description='Get all genres.',
+    summary="Get genres",
+    description="Get all genres.",
 )
 @cache(expire=60)
 async def get_genres(
@@ -29,10 +27,10 @@ async def get_genres(
 
 
 @router.get(
-    '/{genre_id}',
+    "/{genre_id}",
     response_model=GenreDTO,
-    summary='Get genre',
-    description='Get genre details.',
+    summary="Get genre",
+    description="Get genre details.",
 )
 @cache(expire=60)
 async def genre_details(
@@ -45,6 +43,6 @@ async def genre_details(
             description="Genre id for the item to search in the database",
         ),
     ],
-    genre_service: GenreService = Depends(get_genre_service)
+    genre_service: GenreService = Depends(get_genre_service),
 ) -> GenreDTO:
     return await genre_service.get_by_id(genre_id)

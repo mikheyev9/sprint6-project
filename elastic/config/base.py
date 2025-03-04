@@ -7,7 +7,6 @@ class BaseConfig(abc.ABC):
     """Базовый класс для клиента."""
 
     def __init__(self, dsn: AnyUrl, connect: any = None):
-
         self.dsn = dsn
         self.connect = connect
 

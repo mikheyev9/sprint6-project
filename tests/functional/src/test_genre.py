@@ -1,9 +1,8 @@
 import logging
-
-import pytest
 import time
 from http import HTTPStatus
 
+import pytest
 
 logger = logging.getLogger(__name__)
 
@@ -15,14 +14,14 @@ async def test_get_all_genres(make_get_request):
     """
     Проверяет, что без параметров эндпоинт /genres возвращает все жанры.
     """
-    
+
     endpoint = "genres"
     status, body, _ = await make_get_request(endpoint)
 
     assert status == HTTPStatus.OK, f"Ожидался статус 200, получили {status}"
     assert isinstance(body, list), "Ожидаем получить список жанров."
     assert len(body) > 0, "Список жанров не должен быть пустым"
-    
+
     first_genre = body[0]
     assert "id" in first_genre, "У жанра должен быть ключ 'id'"
     assert "name" in first_genre, "У жанра должен быть ключ 'name'"
@@ -31,9 +30,8 @@ async def test_get_all_genres(make_get_request):
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "genre_id, expected_status",
-    [
-        (genre["id"], HTTPStatus.OK) for genre in GENRES_DATA["genres"]
-    ] + [("nonexistent-genre-id", HTTPStatus.NOT_FOUND)]
+    [(genre["id"], HTTPStatus.OK) for genre in GENRES_DATA["genres"]]
+    + [("nonexistent-genre-id", HTTPStatus.NOT_FOUND)],
 )
 async def test_get_genre_by_id(make_get_request, genre_id, expected_status):
     """
@@ -45,15 +43,11 @@ async def test_get_genre_by_id(make_get_request, genre_id, expected_status):
     status, body, _ = await make_get_request(endpoint)
 
     assert status == expected_status, (
-        f"Для genre_id={genre_id} ожидался статус {expected_status}, "
-        f"но получили {status}"
+        f"Для genre_id={genre_id} ожидался статус {expected_status}, " f"но получили {status}"
     )
 
     if status == HTTPStatus.OK:
-        expected_genre = next(
-            (genre for genre in GENRES_DATA["genres"] if genre["id"] == genre_id),
-            None
-        )
+        expected_genre = next((genre for genre in GENRES_DATA["genres"] if genre["id"] == genre_id), None)
         assert expected_genre, f"Жанр с ID {genre_id} не найден в тестовых данных."
         assert "id" in body and "name" in body, "Ответ должен содержать 'id' и 'name'."
         assert body["id"] == expected_genre["id"], "ID жанра в ответе не совпадает с запрошенным."
@@ -67,7 +61,7 @@ async def test_get_genre_by_id(make_get_request, genre_id, expected_status):
         ({"page_number": -1}, HTTPStatus.UNPROCESSABLE_ENTITY),
         ({"page_size": 0}, HTTPStatus.UNPROCESSABLE_ENTITY),
         ({"page_number": "abc"}, HTTPStatus.UNPROCESSABLE_ENTITY),
-    ]
+    ],
 )
 async def test_genre_validation(make_get_request, query_params, expected_status):
     """
@@ -76,13 +70,12 @@ async def test_genre_validation(make_get_request, query_params, expected_status)
     - Неотрицательный page_size
     - Допустимые типы данных
     """
-    
+
     endpoint = "genres"
     status, body, _ = await make_get_request(endpoint, query_params)
 
     assert status == expected_status, (
-        f"Ожидался статус {expected_status} при передаче параметров {query_params}, "
-        f"но получили {status}"
+        f"Ожидался статус {expected_status} при передаче параметров {query_params}, " f"но получили {status}"
     )
 
 
@@ -95,7 +88,7 @@ async def test_genre_redis_caching(redis_clean, make_get_request, redis_client):
     3. Проверяем, что ключ появился в Redis
     4. Делаем повторный запрос (опционально проверяем время/логику)
     """
-    
+
     await redis_clean()
     count_keys_before = await redis_client.dbsize()
     assert count_keys_before == 0, "Redis должен быть пуст перед тестом кеширования."
@@ -105,9 +98,7 @@ async def test_genre_redis_caching(redis_clean, make_get_request, redis_client):
     assert status_first == HTTPStatus.OK, "Первый запрос должен вернуть 200"
 
     count_keys_after = await redis_client.dbsize()
-    assert count_keys_after > 0, (
-        "Ожидалось, что после первого запроса в Redis появятся ключи (кэш)."
-    )
+    assert count_keys_after > 0, "Ожидалось, что после первого запроса в Redis появятся ключи (кэш)."
 
     t_start = time.time()
     status_second, body_second, _ = await make_get_request(endpoint)
@@ -120,4 +111,3 @@ async def test_genre_redis_caching(redis_clean, make_get_request, redis_client):
     elapsed = t_finish - t_start
     logger.info(f"Время выполнения второго запроса: {elapsed} сек")
     # Тут можно делать какую-то логику, мол, если первый запрос был 0.2 c, а второй 0.05 c, значит кэш отработал
-

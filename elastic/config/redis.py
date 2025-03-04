@@ -4,10 +4,10 @@ from logging import config as logging_config
 from redis import Redis
 from redis.exceptions import ConnectionError
 from redis.typing import EncodableT, KeyT
-
 from utils.backoff import backoff
-from .base import BaseConfig
 from utils.logger import LOGGING_CONFIG
+
+from .base import BaseConfig
 
 logger = logging.getLogger(__name__)
 logging_config.dictConfig(LOGGING_CONFIG)
@@ -18,14 +18,9 @@ class RedisClient(BaseConfig):
 
     @backoff(ConnectionError)
     def reconnect(self) -> Redis:
-        """Переподключение к Redis, если соединение отсутствует.
-        """
+        """Переподключение к Redis, если соединение отсутствует."""
         logger.info("Попытка подключения к Redis...")
-        redis_client = Redis(
-            host=self.dsn.host,
-            port=int(self.dsn.port),
-            db=self.dsn.path[1:]
-        )
+        redis_client = Redis(host=self.dsn.host, port=int(self.dsn.port), db=self.dsn.path[1:])
         logger.info("Соединение с Redis выполнено успешно!")
         return redis_client
 

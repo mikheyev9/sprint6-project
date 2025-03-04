@@ -1,10 +1,8 @@
 import logging
-
 from logging import config as logging_config
+
 from psycopg.sql import SQL, Identifier
-
 from utils.logger import LOGGING_CONFIG
-
 
 logger = logging.getLogger(__name__)
 logging_config.dictConfig(LOGGING_CONFIG)
@@ -16,7 +14,7 @@ class Query:
     @staticmethod
     def get_films_query(modified_time: str) -> SQL:
         return SQL(
-            '''
+            """
             SELECT
                 fw.id AS id,
                 fw.title AS title,
@@ -60,7 +58,8 @@ class Query:
                 ) AS genre,
                 COALESCE(array_agg(DISTINCT p.full_name) FILTER (WHERE pfw.role = 'actor'), ARRAY[]::text[]) AS actors_names,
                 COALESCE(array_agg(DISTINCT p.full_name) FILTER (WHERE pfw.role = 'director'), ARRAY[]::text[]) AS directors_names,
-                COALESCE(array_agg(DISTINCT p.full_name) FILTER (WHERE pfw.role = 'writer'), ARRAY[]::text[]) AS writers_names
+                COALESCE(array_agg(DISTINCT p.full_name) FILTER (WHERE pfw.role = 'writer'), ARRAY[]::text[]) AS writers_names,
+                MAX(fw.modified) AS modified -- Добавляем MAX(fw.modified), чтобы корректно агрегировать
             FROM content.film_work fw
             LEFT JOIN content.person_film_work pfw ON pfw.film_work_id = fw.id
             LEFT JOIN content.person p ON p.id = pfw.person_id
@@ -69,54 +68,43 @@ class Query:
             WHERE fw.modified > {last_modified}
                 OR p.modified > {last_modified}
                 OR g.modified > {last_modified}
-            GROUP BY fw.id
-            ORDER BY fw.modified
-            '''
-        ).format(
-            last_modified=modified_time
-        )
+            GROUP BY fw.id, fw.title, fw.description, fw.rating
+            ORDER BY MAX(fw.modified)
+            """
+        ).format(last_modified=modified_time)
+
 
     @staticmethod
     def check_modified(table, modified_time):
-
-        logger.info(
-            'Проверка последнего изменения для таблицы: %s с last_mod: %s',
-            table,
-            modified_time
-        )
+        logger.info("Проверка последнего изменения для таблицы: %s с last_mod: %s", table, modified_time)
 
         query = SQL(
-                '''
+            """
                 SELECT MAX(modified) AS last_modified
                 FROM {table}
                 WHERE modified > {last_modified}
-                '''
-            ).format(
-                table=Identifier('content', table),
-                last_modified=modified_time
-            )
+                """
+        ).format(table=Identifier("content", table), last_modified=modified_time)
 
         return query
 
     @staticmethod
     def get_genres_query(modified_time):
         return SQL(
-            '''
+            """
             SELECT
                 g.id,
                 g.name
             FROM content.genre AS g
             WHERE g.modified > {last_modified}
             ORDER BY g.modified;
-            '''
-        ).format(
-            last_modified=modified_time
-        )
+            """
+        ).format(last_modified=modified_time)
 
     @staticmethod
     def get_persons_query(modified_time):
         return SQL(
-            '''
+             """
             WITH person_roles AS (SELECT pfw.person_id,
                                          pfw.film_work_id,
                                          COALESCE(
@@ -141,9 +129,7 @@ class Query:
             FROM content.person AS p
                      LEFT JOIN person_roles ON person_roles.person_id = p.id
             WHERE p.modified > {last_modified}
-            GROUP BY p.id
+            GROUP BY p.id, p.full_name
             ORDER BY MAX(p.modified);
-            '''
-        ).format(
-            last_modified=modified_time
-        )
+            """
+        ).format(last_modified=modified_time)
