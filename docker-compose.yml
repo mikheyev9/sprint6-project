@@ -24,6 +24,7 @@ services:
     depends_on:
       - etl
       - redis
+      - theatre-db
 
   fastapi_auth:
     build:
@@ -31,13 +32,13 @@ services:
       dockerfile: Dockerfile
     container_name: fastapi_auth
     ports:
-      - "8070:8070"
+      - "8070:8000"
     env_file:
       - .env
     depends_on:
       - etl
       - redis
-
+      - theatre-db
   redis:
     image: redislabs/redismod:latest
     container_name: redis
@@ -56,7 +57,7 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms2048m -Xmx2048m
+      - ES_JAVA_OPTS=-Xms200m -Xmx200m
     depends_on:
       - theatre-db
     ports:
@@ -70,6 +71,7 @@ services:
       - ./nginx/configs:/etc/nginx/conf.d:ro
     depends_on:
       - fastapi
+      - fastapi_auth
     ports:
       - "80:80"
 
