@@ -17,11 +17,11 @@ class CRUDBase:
         self.model = model
 
     async def get(self, obj_id: UUID, session: AsyncSession):
-        db_obj = await session.execute(select(self.model).where(self.model.id == obj_id))
+        db_obj = await session.execute(self.get_query().where(self.model.id == obj_id))
         return db_obj.scalars().first()
 
     async def get_multi(self, session: AsyncSession):
-        db_objs = await session.execute(select(self.model))
+        db_objs = await session.execute(self.get_query())
         return db_objs.scalars().all()
 
     async def create(self, obj_in, session: AsyncSession, user: Optional[User] = None):
@@ -51,3 +51,6 @@ class CRUDBase:
         await session.delete(db_obj)
         await session.commit()
         return db_obj
+
+    def get_query(self):
+        return select(self.model)
