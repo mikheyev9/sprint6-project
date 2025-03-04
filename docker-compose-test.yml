@@ -1,9 +1,9 @@
 services:
   fastapi:
-    container_name: fastapi
     build:
       context: ./fastapi
       dockerfile: Dockerfile
+    container_name: fastapi
     restart: always
     env_file:
       - .env

@@ -1,8 +1,7 @@
 from typing import NoReturn
 
-from src.utils.tokeniser import decode_jwt
-
 from fastapi import HTTPException, Request, status
+from fastapi_auth.src.utils.tokenuser import decode_jwt
 
 
 async def get_access_data(request: Request) -> NoReturn | dict:

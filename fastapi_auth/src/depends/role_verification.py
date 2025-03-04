@@ -1,8 +1,7 @@
 from typing import List
 
-from utils.tokeniser import decode_jwt
-
 from fastapi import HTTPException, Request, status
+from fastapi_auth.src.utils.tokenuser import decode_jwt
 
 
 class UnusualException(HTTPException):

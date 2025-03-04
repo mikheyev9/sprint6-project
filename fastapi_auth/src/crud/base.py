@@ -9,6 +9,10 @@ from src.models.user import User
 
 
 class CRUDBase:
+    """
+    Базовый класс для CRUD (Create, Read, Update, Delete) операций с базой данных.
+    """
+
     def __init__(self, model):
         self.model = model
 
