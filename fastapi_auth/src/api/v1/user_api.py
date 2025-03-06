@@ -1,11 +1,9 @@
-from typing import List
-from uuid import UUID
+from typing import Annotated, Literal
 
 from src.core.config import project_settings
 from src.core.user_core import (
     UserManager,
     auth_backend,
-    current_superuser,
     current_user,
     fastapi_users,
     get_user_manager,
@@ -13,12 +11,11 @@ from src.core.user_core import (
 )
 from src.db.redis_cache import RedisClientFactory
 from src.models.user import User
-from src.schemas.response_schema import ResponseSchema
-from src.schemas.role_schema import RoleGetFull
 from src.schemas.user_schema import UserCreate, UserRead, UserUpdate
-from src.services.user_service import UserService, get_user_service
+from src.services.vk_service import VkService, get_vk_service
+from src.services.yandex_service import YandexService, get_yandex_service
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
 
 router = APIRouter()
 
@@ -33,10 +30,86 @@ router.include_router(
     tags=["auth"],
 )
 
+
+@router.get(
+    "/login-social/{social_name}",
+    tags=["auth"],
+    summary="Redirect to social",
+    description="Redirect to social(Yandex, VK)",
+)
+async def login_social(
+    social_name: Annotated[
+        Literal["yandex", "vk"],
+        Path(
+            title="Social_name service",
+            description="Name of social service for redirect",
+        ),
+    ],
+    vk_service: VkService = Depends(get_vk_service),
+    yandex_service: YandexService = Depends(get_yandex_service),
+):
+    if social_name == "yandex":
+        return await yandex_service.get_yandex_code()
+    elif social_name == "vk":
+        return await vk_service.get_vk_code()
+    else:
+        raise HTTPException(status_code=404, detail=f"Social provider:'{social_name}' not found")
+
+
+@router.get(
+    "/repass/yandex", tags=["auth"], summary="Callback yandex site", description="Callback yandex site with data"
+)
+async def auth_yandex(
+    code: Annotated[
+        str,
+        Query(
+            title="Code for authorization",
+            description="Code fore authorization",
+        ),
+    ],
+    service: YandexService = Depends(get_yandex_service),
+):
+    return await service.login_yandex_user(code)
+
+
+@router.get("/repass/vk", tags=["auth"], summary="Callback vk site", description="Callback vk site with data")
+async def auth_vk(
+    code: Annotated[
+        str,
+        Query(
+            title="Code for authorization",
+            description="Code fore authorization",
+        ),
+    ],
+    device_id: Annotated[
+        str,
+        Query(
+            title="Device_id for authorization",
+            description="Device_id fore authorization",
+        ),
+    ],
+    state: Annotated[
+        str,
+        Query(
+            title="State for authorization",
+            description="State fore authorization",
+        ),
+    ],
+    service: VkService = Depends(get_vk_service),
+):
+    return await service.login_vk_user(code, device_id, state)
+
+
 users_router = fastapi_users.get_users_router(UserRead, UserUpdate)
 users_router.routes = [route for route in users_router.routes if route.name != "users:delete_user"]
 router.include_router(
     users_router,
+    prefix="/users",
+    tags=["users"],
+)
+
+router.include_router(
+    fastapi_users.get_reset_password_router(),
     prefix="/users",
     tags=["users"],
 )
@@ -72,37 +145,3 @@ async def refresh_access_token(
     new_access_token = await auth_backend.get_strategy().write_token(payload)
 
     return {"access_token": new_access_token}
-
-
-@router.get("/{user_id}/roles", tags=["users"], summary="Get User Roles", response_model=List[RoleGetFull])
-async def get_user_roles(
-    user_id: UUID,
-    user_service: UserService = Depends(get_user_service),
-    user: User = Depends(current_superuser),
-):
-    """Список всех ролей установленный для пользователя. Доступно только для суперпользователей."""
-    return await user_service.get_roles(user_id)
-
-
-@router.post("/{user_id}/role", tags=["users"], summary="Add Role to User", response_model=ResponseSchema)
-async def add_role_to_user(
-    user_id: UUID,
-    role_id: UUID,
-    user_service: UserService = Depends(get_user_service),
-    user: User = Depends(current_superuser),
-) -> ResponseSchema:
-    """Добавить роль пользователю. Доступно только для суперпользователей."""
-    await user_service.add_role(user_id, role_id)
-    return ResponseSchema(detail="Role added successfully")
-
-
-@router.delete("/{user_id}/role", tags=["users"], summary="Remove Role from User", response_model=ResponseSchema)
-async def remove_role_from_user(
-    user_id: UUID,
-    role_id: UUID,
-    user_service: UserService = Depends(get_user_service),
-    user: User = Depends(current_superuser),
-) -> ResponseSchema:
-    """Удалить роль у пользователя. Доступно только для суперпользователей."""
-    await user_service.delete_role(user_id, role_id)
-    return ResponseSchema(detail="Role removed successfully")
