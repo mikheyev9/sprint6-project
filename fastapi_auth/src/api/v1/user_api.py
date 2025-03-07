@@ -1,5 +1,7 @@
 from typing import Annotated, Literal
 
+from opentelemetry import trace
+from opentelemetry.trace import SpanKind
 from src.core.config import project_settings
 from src.core.user_core import (
     UserManager,
@@ -18,6 +20,7 @@ from src.services.yandex_service import YandexService, get_yandex_service
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
 
 router = APIRouter()
+tracer = trace.get_tracer(__name__)
 
 router.include_router(
     fastapi_users.get_auth_router(auth_backend),
@@ -38,6 +41,7 @@ router.include_router(
     description="Redirect to social(Yandex, VK)",
 )
 async def login_social(
+    request: Request,
     social_name: Annotated[
         Literal["yandex", "vk"],
         Path(
@@ -48,18 +52,30 @@ async def login_social(
     vk_service: VkService = Depends(get_vk_service),
     yandex_service: YandexService = Depends(get_yandex_service),
 ):
-    if social_name == "yandex":
-        return await yandex_service.get_yandex_code()
-    elif social_name == "vk":
-        return await vk_service.get_vk_code()
-    else:
-        raise HTTPException(status_code=404, detail=f"Social provider:'{social_name}' not found")
+    with tracer.start_as_current_span(
+        "auth.login_social",
+        kind=SpanKind.SERVER,
+        attributes={"social_name": social_name, "http.request_id": request.headers.get("X-Request-Id")},
+    ) as span:
+        try:
+            if social_name == "yandex":
+                response = await yandex_service.get_yandex_code()
+            elif social_name == "vk":
+                response = await vk_service.get_vk_code()
+            else:
+                raise HTTPException(status_code=404, detail=f"Social provider:'{social_name}' not found")
+            return response
+        except Exception as e:
+            span.set_attribute("error", True)
+            span.set_attribute("error.message", str(e))
+            raise
 
 
 @router.get(
     "/repass/yandex", tags=["auth"], summary="Callback yandex site", description="Callback yandex site with data"
 )
 async def auth_yandex(
+    request: Request,
     code: Annotated[
         str,
         Query(
@@ -69,11 +85,24 @@ async def auth_yandex(
     ],
     service: YandexService = Depends(get_yandex_service),
 ):
-    return await service.login_yandex_user(code)
+    with tracer.start_as_current_span(
+        "auth.callback.yandex",
+        kind=SpanKind.SERVER,
+        attributes={"http.request_id": request.headers.get("X-Request-Id")},
+    ) as span:
+        try:
+            yandex_logined = await service.login_yandex_user(code)
+            span.set_attribute("yandex_logined", True)
+            return yandex_logined
+        except Exception as e:
+            span.set_attribute("error", True)
+            span.set_attribute("error.message", str(e))
+            raise
 
 
 @router.get("/repass/vk", tags=["auth"], summary="Callback vk site", description="Callback vk site with data")
 async def auth_vk(
+    request: Request,
     code: Annotated[
         str,
         Query(
@@ -97,7 +126,19 @@ async def auth_vk(
     ],
     service: VkService = Depends(get_vk_service),
 ):
-    return await service.login_vk_user(code, device_id, state)
+    with tracer.start_as_current_span(
+        "auth.callback.vk",
+        kind=SpanKind.SERVER,
+        attributes={"http.request_id": request.headers.get("X-Request-Id")},
+    ) as span:
+        try:
+            vk_logined = await service.login_vk_user(code, device_id, state)
+            span.set_attribute("vk_logined", True)
+            return vk_logined
+        except Exception as e:
+            span.set_attribute("error", True)
+            span.set_attribute("error.message", str(e))
+            raise
 
 
 users_router = fastapi_users.get_users_router(UserRead, UserUpdate)
@@ -124,24 +165,34 @@ router.include_router(
 async def refresh_access_token(
     request: Request, user_manager: UserManager = Depends(get_user_manager), user: User = Depends(current_user)
 ):
-    refresh_token = request.cookies.get("refresh_token")
-    redis = await RedisClientFactory.create(project_settings.redis_dsn)
-    payload = await refresh_auth_backend.get_strategy().read_token(refresh_token, user_manager)
+    with tracer.start_as_current_span(
+        "auth.refresh_token",
+        kind=SpanKind.SERVER,
+        attributes={"user_id": user.id if user else None, "http.request_id": request.headers.get("X-Request-Id")},
+    ) as span:
+        try:
+            refresh_token = request.cookies.get("refresh_token")
+            redis = await RedisClientFactory.create(project_settings.redis_dsn)
+            payload = await refresh_auth_backend.get_strategy().read_token(refresh_token, user_manager)
 
-    if not payload:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Недействительный токен обновления",
-        )
+            if not payload:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Недействительный токен обновления",
+                )
 
-    stored_refresh_token = await redis.get(f"refresh_token:{payload.id}")
+            stored_refresh_token = await redis.get(f"refresh_token:{payload.id}")
 
-    if stored_refresh_token.decode("utf-8") != refresh_token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Недействительный токен обновления",
-        )
+            if stored_refresh_token.decode("utf-8") != refresh_token:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Недействительный токен обновления",
+                )
 
-    new_access_token = await auth_backend.get_strategy().write_token(payload)
-
-    return {"access_token": new_access_token}
+            new_access_token = await auth_backend.get_strategy().write_token(payload)
+            span.set_attribute("person_found", True)
+            return {"access_token": new_access_token}
+        except Exception as e:
+            span.set_attribute("error", True)
+            span.set_attribute("error.message", str(e))
+            raise

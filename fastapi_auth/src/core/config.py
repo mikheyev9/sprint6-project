@@ -139,9 +139,28 @@ class VkSettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="VK_")
 
 
+class JaegerSettings(BaseSettings):
+    """Настройки Jaeger."""
+
+    host_name: str
+    port: int
+    service_name_auth: str
+    dsn: str
+    endpoint: str
+    debug: bool
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="JAEGER_")
+
+    def model_post_init(self, __context):
+        """Формируем DSN после загрузки переменных."""
+
+        self.dsn = f"http://{self.host_name}:{self.port}/{self.endpoint}"
+
+
 project_settings = ProjectSettings()  # type: ignore
 redis_settings = RedisSettings()  # type: ignore
 postgres_settings = PostgresSettings()  # type: ignore
 auth_settings = AuthSettings()  # type: ignore
 yandex_settings = YandexSettings()  # type: ignore
 vk_settings = VkSettings()  # type: ignore
+jaeger_settings = JaegerSettings()  # type: ignore

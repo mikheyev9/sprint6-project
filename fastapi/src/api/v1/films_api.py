@@ -1,12 +1,15 @@
 from typing import Annotated
 
 from fastapi_cache.decorator import cache
+from opentelemetry import trace
+from opentelemetry.trace import SpanKind
 from src.models.film import MovieBaseDTO, MovieInfoDTO
 from src.services.film_service import FilmService, get_film_service
 
 from fastapi import APIRouter, Depends, Path, Query, Request, Response
 
 router = APIRouter()
+tracer = trace.get_tracer(__name__)
 
 
 @router.get(
@@ -51,7 +54,25 @@ async def get_films(
     ] = "imdb_rating",
     film_service: FilmService = Depends(get_film_service),
 ) -> list[MovieBaseDTO]:
-    return await film_service.search(genre=genre, page_number=page_number, page_size=page_size, sort=sort)
+    with tracer.start_as_current_span(
+        "api.get_films",
+        kind=SpanKind.SERVER,
+        attributes={
+            "genre": genre,
+            "page_size": page_size,
+            "page_number": page_number,
+            "sort": sort,
+            "http.request_id": request.headers.get("X-Request-Id"),
+        },
+    ) as span:
+        try:
+            films = await film_service.search(genre=genre, page_number=page_number, page_size=page_size, sort=sort)
+            span.set_attribute("films_count", len(films))
+            return films
+        except Exception as e:
+            span.set_attribute("error", True)
+            span.set_attribute("error.message", str(e))
+            raise
 
 
 @router.get(
@@ -73,7 +94,19 @@ async def film_details(
     ],
     film_service: FilmService = Depends(get_film_service),
 ) -> MovieInfoDTO:
-    return await film_service.get_by_id(film_id)
+    with tracer.start_as_current_span(
+        "api.film_details",
+        kind=SpanKind.SERVER,
+        attributes={"film_id": film_id, "http.request_id": request.headers.get("X-Request-Id")},
+    ) as span:
+        try:
+            film = await film_service.get_by_id(film_id)
+            span.set_attribute("film_found", True)
+            return film
+        except Exception as e:
+            span.set_attribute("error", True)
+            span.set_attribute("error.message", str(e))
+            raise
 
 
 @router.get(
@@ -111,8 +144,25 @@ async def search_films(
     ] = None,
     film_service: FilmService = Depends(get_film_service),
 ) -> list[MovieBaseDTO]:
-    return await film_service.search(
-        page_number=page_number,
-        page_size=page_size,
-        title=query,
-    )
+    with tracer.start_as_current_span(
+        "api.search_films",
+        kind=SpanKind.SERVER,
+        attributes={
+            "page_size": page_size,
+            "page_number": page_number,
+            "query": query,
+            "http.request_id": request.headers.get("X-Request-Id"),
+        },
+    ) as span:
+        try:
+            films = await film_service.search(
+                page_number=page_number,
+                page_size=page_size,
+                title=query,
+            )
+            span.set_attribute("films_count", len(films))
+            return films
+        except Exception as e:
+            span.set_attribute("error", True)
+            span.set_attribute("error.message", str(e))
+            raise
