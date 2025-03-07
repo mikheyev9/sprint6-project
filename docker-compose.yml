@@ -25,6 +25,7 @@ services:
       - etl
       - redis
       - theatre-db
+      - jaeger
 
   fastapi_auth:
     build:
@@ -39,6 +40,8 @@ services:
       - etl
       - redis
       - theatre-db
+      - jaeger
+
   redis:
     image: redislabs/redismod:latest
     container_name: redis
