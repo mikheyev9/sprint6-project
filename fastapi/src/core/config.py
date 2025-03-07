@@ -81,6 +81,25 @@ class ElasticSettings(BaseSettings):
         self.dsn = f"http://{self.host}:{self.port}/"
 
 
+class JaegerSettings(BaseSettings):
+    """Настройки Jaeger."""
+
+    host_name: str
+    port: int
+    service_name_films: str
+    dsn: str
+    endpoint: str
+    debug: bool
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="JAEGER_")
+
+    def model_post_init(self, __context):
+        """Формируем DSN после загрузки переменных."""
+
+        self.dsn = f"http://{self.host_name}:{self.port}/{self.endpoint}"
+
+
 project_settings = ProjectSettings()  # type: ignore
 redis_settings = RedisSettings()  # type: ignore
 elastic_settings = ElasticSettings()  # type: ignore
+jaeger_settings = JaegerSettings()  # type: ignore

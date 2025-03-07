@@ -25,6 +25,7 @@ services:
       - etl
       - redis
       - theatre-db
+      - jaeger
 
   fastapi_auth:
     build:
@@ -39,6 +40,8 @@ services:
       - etl
       - redis
       - theatre-db
+      - jaeger
+
   redis:
     image: redislabs/redismod:latest
     container_name: redis
@@ -88,6 +91,13 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./database/database_dump.sql:/docker-entrypoint-initdb.d/init.sql
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "14268:14268"
+      - "16686:16686"
 
 volumes:
   postgres_data:
