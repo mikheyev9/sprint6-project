@@ -1,3 +1,4 @@
+aiohttp==3.9.1
 alembic==1.7.7
 alembic-autogenerate-enums==0.1.2
 asyncpg==0.28.0
