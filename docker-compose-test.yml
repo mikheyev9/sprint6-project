@@ -66,8 +66,10 @@ services:
     container_name: theatre-db
     ports:
       - "5432:5432"
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_PASSWORD=qwerty1234
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=project_collection
     restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -86,10 +88,8 @@ services:
     container_name: tests
     volumes:
       - ./tests:/opt/app/tests:ro
-    environment:
-      - POSTGRES_PASSWORD=qwerty1234
-      - POSTGRES_USER=postgres
-      - POSTGRES_DB=project_collection
+    env_file:
+      - ./tests/.env
     entrypoint: >
       sh -c "python3 functional/utils/wait_for_es.py
       && python3 functional/utils/wait_for_redis.py
