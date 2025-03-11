@@ -73,7 +73,6 @@ class Query:
             """
         ).format(last_modified=modified_time)
 
-
     @staticmethod
     def check_modified(table, modified_time):
         logger.info("Проверка последнего изменения для таблицы: %s с last_mod: %s", table, modified_time)
