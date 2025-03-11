@@ -11,6 +11,7 @@ class AuthHistory(Base):
 
     user_id: Mapped[UUID] = mapped_column(ForeignKey("user.id", ondelete="CASCADE"), primary_key=True, nullable=False)
     user_agent: Mapped[str] = mapped_column(nullable=False)
+    user_device_type: Mapped[str] = mapped_column(nullable=False)
     timestamp: Mapped[datetime] = mapped_column(default=datetime.now, nullable=False)
 
     user: Mapped["User"] = relationship("User", back_populates="auth_history")  # noqa
