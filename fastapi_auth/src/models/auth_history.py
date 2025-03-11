@@ -31,7 +31,7 @@ def create_partition(target, connection, **kw) -> None:
                 f"""FOR VALUES IN ('{device_type}') PARTITION BY RANGE (timestamp)"""
             )
         )
-        create_monthly_partitions(connection, f'auth_history_{device_type}', device_type, datetime(2024, 1, 1), datetime(2025, 1, 1))
+        create_monthly_partitions(connection, f'auth_history_{device_type}', device_type, datetime(2025, 1, 1), datetime(2026, 1, 1))
 
 
 class AuthHistory(Base):
