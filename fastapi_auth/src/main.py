@@ -7,6 +7,7 @@ from src.core.config import jaeger_settings, project_settings, redis_settings
 from src.core.jaeger import configure_tracer
 from src.db.init_postgres import create_first_superuser
 from src.db.redis_cache import RedisCacheManager
+from src.db.postgres import create_database
 
 from fastapi import FastAPI, Request, status
 
@@ -17,6 +18,7 @@ async def lifespan(app: FastAPI):
 
     redis_cache_manager = RedisCacheManager(redis_settings)
     try:
+        await create_database()
         await create_first_superuser()
         await redis_cache_manager.setup()
 
