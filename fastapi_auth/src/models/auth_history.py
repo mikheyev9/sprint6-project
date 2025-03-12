@@ -2,12 +2,14 @@ from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import ForeignKey, UniqueConstraint, text
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.exc import SQLAlchemyError
-from src.db.postgres import Base
-from dateutil.relativedelta import relativedelta
 from sqlalchemy.engine import Connection
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from dateutil.relativedelta import relativedelta
 from typing import List
+
+from src.db.postgres import Base
+
 
 def create_monthly_partitions(
         connection: Connection,
