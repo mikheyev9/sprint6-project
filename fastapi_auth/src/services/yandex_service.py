@@ -1,4 +1,3 @@
-import logging
 import uuid
 from dataclasses import dataclass
 
@@ -11,8 +10,6 @@ from src.db.redis_cache import RedisClientFactory
 from src.schemas.user_schema import UserCreate
 
 from fastapi import Depends
-
-logger = logging.getLogger(__name__)
 
 
 def get_yandex_service(user_manager: UserManager = Depends(get_user_manager)) -> "YandexService":
@@ -31,11 +28,8 @@ class YandexService:
         if device_name:
             url += f"&device_name={device_name}"
             if not device_id:
-                logger.info(f"Получен ID {str(uuid.uuid4())}")
                 device_id = str(uuid.uuid4())
-                logger.info(f"Получен ID {device_id}")
             url += f"&device_id={device_id}"
-        logger.info(f"device_id: {device_id} device_name: {device_name}")
         redis_client = await RedisClientFactory.create(project_settings.redis_dsn)
         await redis_client.set(f"yandex_device:{device_name}", device_id)
         return RedirectResponse(url, status_code=307)
@@ -53,7 +47,6 @@ class YandexService:
             "device_id": device_id.decode("ascii"),
             "device_name": device_name,
         }
-        logger.info(f"device_id: {device_id} device_name: {device_name}")
         async with aiohttp.ClientSession() as session:
             async with session.post(yandex_settings.token_url, data=data) as response:
                 token_response = await response.json()
@@ -90,7 +83,6 @@ class YandexService:
     async def login_yandex_user(self, code: str, device_id: str = None, device_name: str = "Yandex Device") -> dict:
         """Авторизация пользователя по данным Яндекса."""
         access_token, device_id = await self.get_yandex_token(code, device_id, device_name)
-        logger.info(f"access_token: {access_token} device_id: {device_id}")
         user_info = await self.get_yandex_user_info(access_token)
         email = user_info["default_email"]
         try:
