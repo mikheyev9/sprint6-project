@@ -1,17 +1,17 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import ForeignKey, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.postgres import Base
+from dateutil.relativedelta import relativedelta
 
 
 def create_monthly_partitions(connection, table_name, device_type, start_date: datetime, end_date: datetime):
     while start_date < end_date:
         partition_name = f"{table_name}_{device_type}_{start_date.strftime('%Y_%m')}"
-        next_month = start_date + timedelta(days=31)
-        next_month = next_month.replace(day=1)
+        next_month = start_date + relativedelta(month=1)
         sql = text(
             f"""
             CREATE TABLE IF NOT EXISTS "{partition_name}"
@@ -30,15 +30,34 @@ def create_monthly_partitions(connection, table_name, device_type, start_date: d
 
 def create_partition(target, connection, **kw) -> None:
     """creating partition by user_sign_in"""
-    device_type = ['smart', 'mobile', 'web']
-    for device_type in device_type:
+    device_types = ['smart', 'mobile', 'web']
+    now = datetime.now()
+    current_year = now.year
+    start_date = datetime(current_year, 1, 1)
+    end_date = datetime(current_year + 2, 1, 1)
+
+    for device_type in device_types:
+        partition_table_name = f'auth_history_{device_type}'
+        sql = text(
+            f"""
+            CREATE TABLE IF NOT EXISTS "{partition_table_name}"
+            PARTITION OF "auth_history"
+            FOR VALUES IN (:device_type)
+            PARTITION BY RANGE (timestamp)
+            """
+        )
         connection.execute(
-            text(
-                f"""CREATE TABLE IF NOT EXISTS "auth_history_{device_type}" PARTITION OF "auth_history" """
-                f"""FOR VALUES IN ('{device_type}') PARTITION BY RANGE (timestamp)"""
+            sql.bindparams(
+                device_type=device_type
             )
         )
-        create_monthly_partitions(connection, f'auth_history_{device_type}', device_type, datetime(2025, 1, 1), datetime(2026, 1, 1))
+        create_monthly_partitions(
+            connection,
+            partition_table_name,
+            device_type,
+            start_date,
+            end_date
+        )
 
 
 class AuthHistory(Base):
