@@ -65,7 +65,7 @@ class AuthHistory(Base):
     __table_args__ = (
         UniqueConstraint('id', 'user_device_type'),
         {
-            'postgresql_partition_by': 'LIST (user_deviceV_type)',
+            'postgresql_partition_by': 'LIST (user_device_type)',
             'listeners': [('after_create'), create_partition],
         }
     )
