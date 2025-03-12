@@ -12,10 +12,17 @@ def create_monthly_partitions(connection, table_name, device_type, start_date: d
         partition_name = f"{table_name}_{device_type}_{start_date.strftime('%Y_%m')}"
         next_month = start_date + timedelta(days=31)
         next_month = next_month.replace(day=1)
+        sql = text(
+            f"""
+            CREATE TABLE IF NOT EXISTS "{partition_name}"
+            PARTITION OF "{table_name}"
+            FOR VALUES FROM (:start_date) TO (:next_month)
+            """
+        )
         connection.execute(
-            text(
-                f"""CREATE TABLE IF NOT EXIST "{partition_name}" PARTITION OF {table_name}"""
-                f""" FOR VALUES FROM ('{start_date}') TO ('{next_month}')"""
+            sql.bindparams(
+                start_date=start_date.isoformat(),
+                next_month=next_month.isoformat()
             )
         )
         start_date = next_month
