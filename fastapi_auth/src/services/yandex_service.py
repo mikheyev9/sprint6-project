@@ -1,13 +1,18 @@
+import logging
+import uuid
 from dataclasses import dataclass
 
 import aiohttp
 from fastapi.responses import RedirectResponse
 from fastapi_users.exceptions import UserNotExists
-from src.core.config import yandex_settings
-from src.core.user_core import UserManager, auth_backend, get_user_manager
+from src.core.config import project_settings, yandex_settings
+from src.core.user_core import UserManager, auth_backend, get_user_manager, refresh_auth_backend
+from src.db.redis_cache import RedisClientFactory
 from src.schemas.user_schema import UserCreate
 
 from fastapi import Depends
+
+logger = logging.getLogger(__name__)
 
 
 def get_yandex_service(user_manager: UserManager = Depends(get_user_manager)) -> "YandexService":
@@ -21,22 +26,38 @@ class YandexService:
 
     user_manager: UserManager
 
-    async def get_yandex_code(self) -> str:
+    async def get_yandex_code(self, url, device_id: str = None, device_name: str = "Yandex Device") -> str:
         """Получение данных для ссылки редиректа в Яндекс"""
-        return RedirectResponse(yandex_settings.auth_url, status_code=307)
+        if device_name:
+            url += f"&device_name={device_name}"
+            if not device_id:
+                logger.info(f"Получен ID {str(uuid.uuid4())}")
+                device_id = str(uuid.uuid4())
+                logger.info(f"Получен ID {device_id}")
+            url += f"&device_id={device_id}"
+        logger.info(f"device_id: {device_id} device_name: {device_name}")
+        redis_client = await RedisClientFactory.create(project_settings.redis_dsn)
+        await redis_client.set(f"yandex_device:{device_name}", device_id)
+        return RedirectResponse(url, status_code=307)
 
-    async def get_yandex_token(self, code: str) -> str:
+    async def get_yandex_token(self, code: str, device_id: str = None, device_name: str = "Yandex Device") -> str:
         """Получение на сайте Яндекса access_token"""
+        if not device_id:
+            redis_client = await RedisClientFactory.create(project_settings.redis_dsn)
+            device_id = await redis_client.get(f"yandex_device:{device_name}")
         data = {
             "grant_type": "authorization_code",
             "code": code,
             "client_id": yandex_settings.client_id,
             "client_secret": yandex_settings.client_secret,
+            "device_id": device_id.decode("ascii"),
+            "device_name": device_name,
         }
+        logger.info(f"device_id: {device_id} device_name: {device_name}")
         async with aiohttp.ClientSession() as session:
             async with session.post(yandex_settings.token_url, data=data) as response:
                 token_response = await response.json()
-                return token_response.get("access_token")
+                return token_response.get("access_token"), device_id
 
     async def get_yandex_user_info(self, access_token: str) -> dict:
         """Получение данных на сайте Яндекса пользователя"""
@@ -45,9 +66,31 @@ class YandexService:
             async with session.get(yandex_settings.user_info_url, headers=user_info_headers) as response:
                 return await response.json()
 
-    async def login_yandex_user(self, code: str) -> dict:
+    async def revoke_yandex_token(self, access_token: str) -> dict:
+        """Получение статуса разлогинивания на сайте Яндекса пользователя"""
+        data = {
+            "access_token": access_token,
+            "client_id": yandex_settings.client_id,
+            "client_secret": yandex_settings.client_secret,
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(yandex_settings.revoke_token_url, data=data) as response:
+                return await response.json()
+
+    async def logined_yandex_user(self, user, device_id: str, device_name: str) -> dict:
+        """Генерация токенов для пользователя"""
+        access_token = await auth_backend.get_strategy().write_token(user)
+        refresh_token = await refresh_auth_backend.get_strategy().write_token(user)
+        redis_client = await RedisClientFactory.create(project_settings.redis_dsn)
+        await redis_client.set(f"access_token:{user.id}", access_token)
+        await redis_client.set(f"refresh_token:{user.id}", refresh_token)
+        await redis_client.set(f"yandex_device:{device_name}", device_id)
+        return {"access_token": access_token, "refresh_token": refresh_token}
+
+    async def login_yandex_user(self, code: str, device_id: str = None, device_name: str = "Yandex Device") -> dict:
         """Авторизация пользователя по данным Яндекса."""
-        access_token = await self.get_yandex_token(code)
+        access_token, device_id = await self.get_yandex_token(code, device_id, device_name)
+        logger.info(f"access_token: {access_token} device_id: {device_id}")
         user_info = await self.get_yandex_user_info(access_token)
         email = user_info["default_email"]
         try:
@@ -62,5 +105,17 @@ class YandexService:
                 is_verified=True,
             )
             user = await self.user_manager.create(user_data)
-        access_token = await auth_backend.get_strategy().write_token(user)
-        return {"message": "Social login successful.", "email": email, "access_token": access_token}
+        tokens = await self.logined_yandex_user(user, device_id, device_name)
+        return {"message": "Успешная авторизация через Яндекс", "email": email, **tokens}
+
+    async def logout_yandex_user(
+        self, code: str, user, device_id: str = None, device_name: str = "Yandex Device"
+    ) -> dict:
+        """Разлогинивание пользователя по данным Яндекса."""
+        access_token, device_id = await self.get_yandex_token(code, device_id, device_name)
+        logout_response = await self.revoke_yandex_token(access_token)
+        redis_client = await RedisClientFactory.create(project_settings.redis_dsn)
+        await redis_client.delete(f"access_token:{user.id}")
+        await redis_client.delete(f"refresh_token:{user.id}")
+        await redis_client.delete(f"yandex_device:{device_name}", device_id)
+        return {"status": "Tokens revoked", **logout_response}
