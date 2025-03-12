@@ -7,7 +7,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from src.db.postgres import Base
 from dateutil.relativedelta import relativedelta
 from sqlalchemy.engine import Connection
-
+from typing import List
 
 def create_monthly_partitions(
         connection: Connection,
@@ -30,8 +30,8 @@ def create_monthly_partitions(
             )
             connection.execute(
                 sql.bindparams(
-                    start_date=start_date.isoformat(),
-                    next_month=next_month.isoformat()
+                    start_date=start_date,
+                    next_month=next_month
                 )
             )
             start_date = next_month
@@ -41,14 +41,14 @@ def create_monthly_partitions(
         raise SQLAlchemyError(f'Ошибка create monthly partitions для таблицы: {table_name}')
 
 
-def create_partition(target, connection, **kw) -> None:
+def create_partition(target, connection: Connection, device_types: List[str]) -> None:
     """Создание партиций по типу устройства и времени"""
-    device_types = ['smart', 'mobile', 'web']
+    device_types = device_types or ['smart', 'mobile', 'web']
     now = datetime.now()
     current_year = now.year
     start_date = datetime(current_year, 1, 1)
     end_date = datetime(current_year + 2, 1, 1)
-
+    transaction = connection.begin()
     try:
         for device_type in device_types:
             partition_table_name = f'auth_history_{device_type}'
@@ -72,8 +72,10 @@ def create_partition(target, connection, **kw) -> None:
                 start_date,
                 end_date
             )
+        transaction.commit()
     except SQLAlchemyError:
-        raise
+        transaction.rollback
+        raise SQLAlchemyError('Ошибка create_partition для auth_history')
 
 
 class AuthHistory(Base):
