@@ -64,21 +64,21 @@ services:
     networks:
       - movies-net
 
-  # fastapi_auth2:
-  #   build:
-  #     context: ./fastapi_auth
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "8071:8070"
-  #   env_file:
-  #     - .env
-  #   depends_on:
-  #     - etl
-  #     - redis
-  #     - theatre-db
-  #     - jaeger
-  #   networks:
-  #     - movies-net
+  fastapi_auth2:
+    build:
+      context: ./fastapi_auth
+      dockerfile: Dockerfile
+    ports:
+      - "8071:8070"
+    env_file:
+      - .env
+    depends_on:
+      - etl
+      - redis
+      - theatre-db
+      - jaeger
+    networks:
+      - movies-net
 
   redis:
     image: redislabs/redismod:latest
@@ -118,7 +118,7 @@ services:
       - fastapi1
       - fastapi2
       - fastapi_auth1
-      #- fastapi_auth2
+      - fastapi_auth2
     ports:
       - "80:80"
     networks:

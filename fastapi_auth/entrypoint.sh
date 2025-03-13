@@ -25,6 +25,6 @@ echo "PostgreSQL is up and running!"
 
 echo "Running Alembic migrations..."
 
-alembic upgrade head
+# alembic upgrade head
 
 exec uvicorn src.main:app --reload --host 0.0.0.0 --port 8070
