@@ -25,6 +25,7 @@ metadata = MetaData()
 class PreBase:
     @declared_attr
     def __tablename__(self) -> str:
+        """Добавляет название таблицы по названию класса в метаданные модели в стиле snake_case."""
         return re.sub(r"(?<!^)(?=[A-Z])", "_", self.__name__).lower()
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, sort_order=-1)
