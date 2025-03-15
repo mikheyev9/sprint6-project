@@ -15,6 +15,7 @@ from src.db.redis_cache import RedisClientFactory
 from src.models.user import User
 from src.schemas.user_schema import UserCreate, UserRead, UserUpdate
 from src.services.vk_service import VkService, get_vk_service
+from src.services.auth_history_service import AuthHistoryService, get_auth_history
 from src.services.yandex_service import YandexService, get_yandex_service
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status
@@ -49,6 +50,7 @@ async def login_social(
             description="Name of social service for redirect",
         ),
     ],
+    auth_service: AuthHistoryService = Depends(get_auth_history),
     vk_service: VkService = Depends(get_vk_service),
     yandex_service: YandexService = Depends(get_yandex_service),
 ):
@@ -58,6 +60,7 @@ async def login_social(
         attributes={"social_name": social_name, "http.request_id": request.headers.get("X-Request-Id")},
     ) as span:
         try:
+            user_agent = request.headers.get("User-Agent")
             if social_name == "yandex":
                 response = await yandex_service.get_yandex_code()
             elif social_name == "vk":

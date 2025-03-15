@@ -33,7 +33,10 @@ class AuthHistoryService:
             for auth_history in auth_histories.scalars().all()
         ]
 
-    async def create(self, data: AuthCreateHistory) -> AuthGetHistory:
+    async def create(self, obj_id: UUID, user_agent: str) -> AuthGetHistory:
         """Создание записи при входе пользователя в аккаунт"""
+        data = AuthCreateHistory(
+  
+        )
         auth_history = await self.auth.create(data, self.session)
         return AuthGetHistory.model_validate(auth_history)
