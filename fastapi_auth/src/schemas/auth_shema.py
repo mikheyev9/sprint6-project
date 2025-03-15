@@ -15,4 +15,3 @@ class AuthGetHistory(UUIDMixin):
 
 class AuthCreateHistory(AuthGetHistory):
     user_device_type: str
-    timestamp: datetime
