@@ -20,10 +20,6 @@ def get_auth_history(session: AsyncSession = Depends(get_async_session)) -> "Aut
 @dataclass
 class AuthHistoryService:
     session: AsyncSession
-    # user_id: UUID
-    # user_agent: str
-    # limit: int | None = None
-    # timestamp: datetime
     auth: CRUDBase = CRUDBase(AuthHistory)
 
     async def get_history(self, obj_id: UUID, limit: int = None) -> List[AuthGetHistory]:
