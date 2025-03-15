@@ -20,16 +20,24 @@ def get_auth_history(session: AsyncSession = Depends(get_async_session)) -> "Aut
 @dataclass
 class AuthHistoryService:
     session: AsyncSession
-    user_id: UUID
-    user_agent: str
-    timestamp: datetime
+    # user_id: UUID
+    # user_agent: str
+    # limit: int | None = None
+    # timestamp: datetime
     auth: CRUDBase = CRUDBase(AuthHistory)
 
-    async def get_history(self) -> List[AuthGetHistory]:
+    async def get_history(self, obj_id: UUID, limit: int) -> List[AuthGetHistory]:
         """Получение своей истории входа в аккаунт"""
-        auth_histories = await self.auth.get(self.session)
-        return [AuthGetHistory.model_validate(auth_history) for auth_history in auth_histories]
+        auth_histories = await self.session.execute(
+            self.auth.get_query()
+            .where(self.auth.model.user_id == obj_id)
+            .limit(self.limit if self.limit else None)
+        )
+        return [
+            AuthGetHistory.model_validate(auth_history)
+            for auth_history in auth_histories
+        ]
 
     async def create(self, data: AuthCreateHistory) -> AuthGetHistory:
         """Создание записи при входе пользователя в аккаунт"""
-        pass
+        auth_history = await self.auth.create(data, self.session)

@@ -20,7 +20,7 @@ class CRUDBase:
         db_obj = await session.execute(self.get_query().where(self.model.id == obj_id))
         return db_obj.scalars().first()
 
-    async def get_multi(self, session: AsyncSession):
+    async def get_multi(self, session: AsyncSession, obj_id: UUID = None):
         db_objs = await session.execute(self.get_query())
         return db_objs.scalars().all()
 

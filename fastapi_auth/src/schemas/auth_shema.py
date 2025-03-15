@@ -10,9 +10,9 @@ class AuthGetHistory(UUIDMixin):
 
     user_id: UUID
     user_agent: str
-    limit: int | None = None
     timestamp: datetime = Field(default=datetime.now())
 
 
 class AuthCreateHistory(AuthGetHistory):
-    pass
+    user_device_type: str
+    timestamp: datetime
