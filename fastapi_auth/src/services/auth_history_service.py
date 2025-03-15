@@ -41,3 +41,4 @@ class AuthHistoryService:
     async def create(self, data: AuthCreateHistory) -> AuthGetHistory:
         """Создание записи при входе пользователя в аккаунт"""
         auth_history = await self.auth.create(data, self.session)
+        return AuthGetHistory.model_validate(auth_history)
