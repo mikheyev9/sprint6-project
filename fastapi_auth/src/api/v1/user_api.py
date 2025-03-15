@@ -50,7 +50,6 @@ async def login_social(
             description="Name of social service for redirect",
         ),
     ],
-    auth_service: AuthHistoryService = Depends(get_auth_history),
     vk_service: VkService = Depends(get_vk_service),
     yandex_service: YandexService = Depends(get_yandex_service),
 ):
@@ -60,7 +59,6 @@ async def login_social(
         attributes={"social_name": social_name, "http.request_id": request.headers.get("X-Request-Id")},
     ) as span:
         try:
-            user_agent = request.headers.get("User-Agent")
             if social_name == "yandex":
                 response = await yandex_service.get_yandex_code()
             elif social_name == "vk":
@@ -86,6 +84,7 @@ async def auth_yandex(
             description="Code fore authorization",
         ),
     ],
+    auth_service: AuthHistoryService = Depends(get_auth_history),
     service: YandexService = Depends(get_yandex_service),
 ):
     with tracer.start_as_current_span(
@@ -94,8 +93,10 @@ async def auth_yandex(
         attributes={"http.request_id": request.headers.get("X-Request-Id")},
     ) as span:
         try:
-            yandex_logined = await service.login_yandex_user(code)
+            user_agent = request.headers.get("User-Agent")
+            user, yandex_logined = await service.login_yandex_user(code)
             span.set_attribute("yandex_logined", True)
+            await auth_service.create(user.id, user_agent)
             return yandex_logined
         except Exception as e:
             span.set_attribute("error", True)
@@ -127,6 +128,7 @@ async def auth_vk(
             description="State fore authorization",
         ),
     ],
+    auth_service: AuthHistoryService = Depends(get_auth_history),
     service: VkService = Depends(get_vk_service),
 ):
     with tracer.start_as_current_span(
@@ -135,7 +137,9 @@ async def auth_vk(
         attributes={"http.request_id": request.headers.get("X-Request-Id")},
     ) as span:
         try:
-            vk_logined = await service.login_vk_user(code, device_id, state)
+            user_agent = request.headers.get("User-Agent")
+            user, vk_logined = await service.login_vk_user(code, device_id, state)
+            await auth_service.create(user.id, user_agent)
             span.set_attribute("vk_logined", True)
             return vk_logined
         except Exception as e:

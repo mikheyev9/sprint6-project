@@ -120,4 +120,4 @@ class VkService:
             )
             user = await self.user_manager.create(user_data)
         access_token = await auth_backend.get_strategy().write_token(user)
-        return {"message": "Social login successful.", "email": email, "access_token": access_token}
+        return (user, {"message": "Social login successful.", "email": email, "access_token": access_token})

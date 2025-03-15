@@ -10,6 +10,8 @@ from src.db.postgres import get_async_session
 from src.models.auth_history import AuthHistory
 from src.schemas.auth_shema import AuthGetHistory, AuthCreateHistory
 
+from src.utils.detect_device import detect_device_type
+
 
 def get_auth_history(session: AsyncSession = Depends(get_async_session)) -> "AuthHistoryService":
     """Функция для получения истории входов."""
@@ -33,10 +35,12 @@ class AuthHistoryService:
             for auth_history in auth_histories.scalars().all()
         ]
 
-    async def create(self, obj_id: UUID, user_agent: str) -> AuthGetHistory:
+    async def create(self, obj_id: UUID, user_agent: str) -> None:
         """Создание записи при входе пользователя в аккаунт"""
         data = AuthCreateHistory(
-  
+            user_id=obj_id,
+            user_agent=user_agent,
+            user_device_type=detect_device_type(user_agent),
+
         )
-        auth_history = await self.auth.create(data, self.session)
-        return AuthGetHistory.model_validate(auth_history)
+        await self.auth.create(data, self.session)
