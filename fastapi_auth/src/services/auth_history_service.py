@@ -1,18 +1,17 @@
 from dataclasses import dataclass
-from http import HTTPStatus
 from typing import List
 from uuid import UUID
-from datetime import datetime
+
+from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.crud.base import CRUDBase
 from src.db.postgres import get_async_session
 from src.models.auth_history import AuthHistory
 from src.schemas.auth_shema import AuthGetHistory, AuthCreateHistory
 
-from fastapi import Depends, HTTPException
 
-
-def get_auth_history(session: AsyncSession = Depends(get_async_session)) -> "AuthService":
+def get_auth_history(session: AsyncSession = Depends(get_async_session)) -> "AuthHistoryService":
     """Функция для получения истории входов."""
     return AuthHistoryService(session)
 
