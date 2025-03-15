@@ -26,12 +26,12 @@ class AuthHistoryService:
     # timestamp: datetime
     auth: CRUDBase = CRUDBase(AuthHistory)
 
-    async def get_history(self, obj_id: UUID, limit: int) -> List[AuthGetHistory]:
+    async def get_history(self, obj_id: UUID, limit: int = None) -> List[AuthGetHistory]:
         """Получение своей истории входа в аккаунт"""
         auth_histories = await self.session.execute(
             self.auth.get_query()
             .where(self.auth.model.user_id == obj_id)
-            .limit(self.limit if self.limit else None)
+            .limit(limit if limit else None)
         )
         return [
             AuthGetHistory.model_validate(auth_history)
