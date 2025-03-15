@@ -35,7 +35,7 @@ class AuthHistoryService:
         )
         return [
             AuthGetHistory.model_validate(auth_history)
-            for auth_history in auth_histories
+            for auth_history in auth_histories.scalars().all()
         ]
 
     async def create(self, data: AuthCreateHistory) -> AuthGetHistory:
