@@ -6,8 +6,9 @@ from src.api.routers import main_router
 from src.core.config import jaeger_settings, project_settings, redis_settings
 from src.core.jaeger import configure_tracer
 from src.db.init_postgres import create_first_superuser
-from src.db.redis_cache import RedisCacheManager, RedisClientFactory
 from src.db.postgres import create_database
+from src.db.redis_cache import RedisCacheManager, RedisClientFactory
+
 from fastapi import FastAPI, Request, status
 
 

@@ -74,7 +74,10 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
         user_agent = request.headers.get("User-Agent")
         async for session in get_async_session():
             auth_entry = AuthHistory(
-                user_id=user.id, user_agent=user_agent, user_device_type=detect_device_type(user_agent), timestamp=datetime.now()
+                user_id=user.id,
+                user_agent=user_agent,
+                user_device_type=detect_device_type(user_agent),
+                timestamp=datetime.now(),
             )
             session.add(auth_entry)
             await session.commit()

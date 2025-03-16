@@ -14,8 +14,8 @@ from src.core.user_core import (
 from src.db.redis_cache import RedisClientFactory
 from src.models.user import User
 from src.schemas.user_schema import UserCreate, UserRead, UserUpdate
-from src.services.vk_service import VkService, get_vk_service
 from src.services.auth_history_service import AuthHistoryService, get_auth_history
+from src.services.vk_service import VkService, get_vk_service
 from src.services.yandex_service import YandexService, get_yandex_service
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query, Request, status

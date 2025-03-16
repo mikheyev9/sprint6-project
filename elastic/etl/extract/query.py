@@ -103,7 +103,7 @@ class Query:
     @staticmethod
     def get_persons_query(modified_time):
         return SQL(
-             """
+            """
             WITH person_roles AS (SELECT pfw.person_id,
                                          pfw.film_work_id,
                                          COALESCE(
