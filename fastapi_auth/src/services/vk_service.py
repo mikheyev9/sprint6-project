@@ -8,7 +8,7 @@ import aiohttp
 from fastapi.responses import RedirectResponse
 from fastapi_users.exceptions import UserNotExists
 from src.core.config import project_settings, vk_settings
-from src.core.user_core import UserManager, auth_backend, get_user_manager
+from src.core.user_core import UserManager, auth_backend, get_user_manager, refresh_auth_backend
 from src.db.redis_cache import RedisClientFactory
 from src.schemas.user_schema import UserCreate
 
@@ -44,7 +44,7 @@ class VkService:
         code_challenge = base64.urlsafe_b64encode(sha256_hash).decode("ascii")
         return code_challenge.rstrip("=")
 
-    async def get_vk_code(self) -> str:
+    async def get_vk_code(self, url) -> str:
         """Получение данных для ссылки редиректа в ВК"""
         redis = await RedisClientFactory.create(project_settings.redis_dsn)
         state = await redis.get("state")
@@ -63,7 +63,7 @@ class VkService:
         query = (
             f"?response_type=code"
             f"&client_id={vk_settings.client_id}"
-            f"&redirect_uri={vk_settings.redirect_uri}"
+            f"&redirect_uri={url}"
             f"&state={state}"
             f"&code_challenge={code_challenge}"
             f"&code_challenge_method={vk_settings.code_challenge_method}"
@@ -71,7 +71,7 @@ class VkService:
         )
         return RedirectResponse(f"{vk_settings.auth_url}{query}", status_code=307)
 
-    async def get_vk_token(self, code: str, device_id: str, state: str) -> str:
+    async def get_vk_token(self, code: str, device_id: str, state: str, redirect_uri: str) -> str:
         """Получение на сайте ВК access_token"""
         redis = await RedisClientFactory.create(project_settings.redis_dsn)
         state_redis = await redis.get("state")
@@ -87,7 +87,7 @@ class VkService:
             "client_secret": vk_settings.client_secret,
             "code_verifier": code_verifier.decode("ascii"),
             "device_id": device_id,
-            "redirect_uri": vk_settings.redirect_uri,
+            "redirect_uri": redirect_uri,
             "state": state,
         }
         async with aiohttp.ClientSession() as session:
@@ -102,9 +102,28 @@ class VkService:
             async with session.post(vk_settings.user_info_url, data=data) as response:
                 return await response.json()
 
-    async def login_vk_user(self, code: str, device_id: str, state: str) -> dict:
+    async def revoke_vk_token(self, access_token: str) -> dict:
+        """Получение статуса разлогинивания на сайте ВК пользователя"""
+        data = {
+            "client_id": vk_settings.client_id,
+            "access_token": access_token,
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(vk_settings.logout_url, data=data) as response:
+                return await response.json()
+
+    async def logined_vk_user(self, user) -> dict:
+        """Генерация токенов для пользователя"""
+        access_token = await auth_backend.get_strategy().write_token(user)
+        refresh_token = await refresh_auth_backend.get_strategy().write_token(user)
+        redis = await RedisClientFactory.create(project_settings.redis_dsn)
+        await redis.set(f"access_token:{user.id}", access_token)
+        await redis.set(f"refresh_token:{user.id}", refresh_token)
+        return {"access_token": access_token, "refresh_token": refresh_token}
+
+    async def login_vk_user(self, code: str, device_id: str, state: str, redirect_uri: str) -> dict:
         """Авторизация пользователя по данным ВК."""
-        access_token = await self.get_vk_token(code, device_id, state)
+        access_token = await self.get_vk_token(code, device_id, state, redirect_uri)
         user_info = await self.get_vk_user_info(access_token)
         email = user_info["user"]["email"]
         try:
@@ -119,5 +138,14 @@ class VkService:
                 is_verified=True,
             )
             user = await self.user_manager.create(user_data)
-        access_token = await auth_backend.get_strategy().write_token(user)
-        return (user, {"message": "Social login successful.", "email": email, "access_token": access_token})
+        tokens = await self.logined_vk_user(user)
+        return {"message": "Успешная авторизация через ВК", "email": email, **tokens}
+
+    async def logout_vk_user(self, code: str, user, device_id: str, state: str, redirect_uri: str) -> dict:
+        """Разлогинивание пользователя по данным ВК."""
+        access_token = await self.get_vk_token(code, device_id, state, redirect_uri)
+        logout_response = await self.revoke_vk_token(access_token)
+        redis = await RedisClientFactory.create(project_settings.redis_dsn)
+        await redis.delete(f"access_token:{user.id}")
+        await redis.delete(f"refresh_token:{user.id}")
+        return {"status": "Tokens revoked", **logout_response}

@@ -2,7 +2,7 @@ from typing import Annotated, Literal
 
 from opentelemetry import trace
 from opentelemetry.trace import SpanKind
-from src.core.config import project_settings
+from src.core.config import project_settings, vk_settings, yandex_settings
 from src.core.user_core import (
     UserManager,
     auth_backend,
@@ -50,6 +50,23 @@ async def login_social(
             description="Name of social service for redirect",
         ),
     ],
+    device_id: Annotated[
+        str,
+        Query(
+            title="Device_id for authorization",
+            description="Unique device identifier",
+            min_length=6,
+            max_length=50,
+        ),
+    ] = None,
+    device_name: Annotated[
+        str,
+        Query(
+            title="Device Name",
+            description="Device name to display to the user",
+            max_length=100,
+        ),
+    ] = "Yandex Device",
     vk_service: VkService = Depends(get_vk_service),
     yandex_service: YandexService = Depends(get_yandex_service),
 ):
@@ -60,9 +77,65 @@ async def login_social(
     ) as span:
         try:
             if social_name == "yandex":
-                response = await yandex_service.get_yandex_code()
+                response = await yandex_service.get_yandex_code(yandex_settings.auth_url_login, device_id, device_name)
             elif social_name == "vk":
-                response = await vk_service.get_vk_code()
+                response = await vk_service.get_vk_code(vk_settings.redirect_uri_login)
+            else:
+                raise HTTPException(status_code=404, detail=f"Social provider:'{social_name}' not found")
+            return response
+        except Exception as e:
+            span.set_attribute("error", True)
+            span.set_attribute("error.message", str(e))
+            raise
+
+
+@router.get(
+    "/logout-social/{social_name}",
+    tags=["auth"],
+    summary="Redirect to social",
+    description="Redirect to social(Yandex, VK)",
+)
+async def logout_social(
+    request: Request,
+    social_name: Annotated[
+        Literal["yandex", "vk"],
+        Path(
+            title="Social_name service",
+            description="Name of social service for redirect",
+        ),
+    ],
+    device_id: Annotated[
+        str,
+        Query(
+            title="Device_id for authorization",
+            description="Unique device identifier",
+            min_length=6,
+            max_length=50,
+        ),
+    ] = None,
+    device_name: Annotated[
+        str,
+        Query(
+            title="Device Name",
+            description="Device name to display to the user",
+            max_length=100,
+        ),
+    ] = "Yandex Device",
+    vk_service: VkService = Depends(get_vk_service),
+    yandex_service: YandexService = Depends(get_yandex_service),
+):
+    with tracer.start_as_current_span(
+        "auth.logout_social",
+        kind=SpanKind.SERVER,
+        attributes={"social_name": social_name, "http.request_id": request.headers.get("X-Request-Id")},
+    ) as span:
+        try:
+            if social_name == "yandex":
+                response = await yandex_service.get_yandex_code(
+                    yandex_settings.auth_url_logout, device_id, device_name
+                )
+            elif social_name == "vk":
+                response = await vk_service.get_vk_code(vk_settings.redirect_uri_logout)
             else:
                 raise HTTPException(status_code=404, detail=f"Social provider:'{social_name}' not found")
             return response
@@ -84,7 +157,23 @@ async def auth_yandex(
             description="Code fore authorization",
         ),
     ],
-    auth_service: AuthHistoryService = Depends(get_auth_history),
+    device_id: Annotated[
+        str,
+        Query(
+            title="Device_id for authorization",
+            description="Unique device identifier",
+            min_length=6,
+            max_length=50,
+        ),
+    ] = None,
+    device_name: Annotated[
+        str,
+        Query(
+            title="Device Name",
+            description="Device name to display to the user",
+            max_length=100,
+        ),
+    ] = "Yandex Device",
     service: YandexService = Depends(get_yandex_service),
 ):
     with tracer.start_as_current_span(
@@ -93,11 +182,57 @@ async def auth_yandex(
         attributes={"http.request_id": request.headers.get("X-Request-Id")},
     ) as span:
         try:
-            user_agent = request.headers.get("User-Agent")
-            user, yandex_logined = await service.login_yandex_user(code)
+            yandex_logined = await service.login_yandex_user(code, device_id, device_name)
             span.set_attribute("yandex_logined", True)
             await auth_service.create(user.id, user_agent)
             return yandex_logined
+        except Exception as e:
+            span.set_attribute("error", True)
+            span.set_attribute("error.message", str(e))
+            raise
+
+
+@router.get(
+    "/logout/yandex", tags=["auth"], summary="Logout from yandex site", description="Logout from yandex site with data"
+)
+async def logout_yandex(
+    request: Request,
+    code: Annotated[
+        str,
+        Query(
+            title="Code for authorization",
+            description="Code fore authorization",
+        ),
+    ],
+    device_id: Annotated[
+        str,
+        Query(
+            title="Device_id for authorization",
+            description="Unique device identifier",
+            min_length=6,
+            max_length=50,
+        ),
+    ] = None,
+    device_name: Annotated[
+        str,
+        Query(
+            title="Device Name",
+            description="Device name to display to the user",
+            max_length=100,
+        ),
+    ] = "Yandex Device",
+    service: YandexService = Depends(get_yandex_service),
+    user: User = Depends(current_user),
+):
+    with tracer.start_as_current_span(
+        "auth.logout.yandex",
+        kind=SpanKind.SERVER,
+        attributes={"http.request_id": request.headers.get("X-Request-Id")},
+    ) as span:
+        try:
+            yandex_logout = await service.logout_yandex_user(code, user, device_id, device_name)
+            span.set_attribute("yandex_logouted", True)
+            return yandex_logout
         except Exception as e:
             span.set_attribute("error", True)
             span.set_attribute("error.message", str(e))
@@ -118,7 +253,7 @@ async def auth_vk(
         str,
         Query(
             title="Device_id for authorization",
-            description="Device_id fore authorization",
+            description="Unique device identifier",
         ),
     ],
     state: Annotated[
@@ -137,10 +272,50 @@ async def auth_vk(
         attributes={"http.request_id": request.headers.get("X-Request-Id")},
     ) as span:
         try:
-            user_agent = request.headers.get("User-Agent")
-            user, vk_logined = await service.login_vk_user(code, device_id, state)
-            await auth_service.create(user.id, user_agent)
+            vk_logined = await service.login_vk_user(code, device_id, state, vk_settings.redirect_uri_login)
             span.set_attribute("vk_logined", True)
+            return vk_logined
+        except Exception as e:
+            span.set_attribute("error", True)
+            span.set_attribute("error.message", str(e))
+            raise
+
+
+@router.get("/logout/vk", tags=["auth"], summary="Logout from vk site", description="Logout from vk site with data")
+async def logout_vk(
+    request: Request,
+    code: Annotated[
+        str,
+        Query(
+            title="Code for authorization",
+            description="Code fore authorization",
+        ),
+    ],
+    device_id: Annotated[
+        str,
+        Query(
+            title="Device_id for authorization",
+            description="Unique device identifier",
+        ),
+    ],
+    state: Annotated[
+        str,
+        Query(
+            title="State for authorization",
+            description="State fore authorization",
+        ),
+    ],
+    service: VkService = Depends(get_vk_service),
+    user: User = Depends(current_user),
+):
+    with tracer.start_as_current_span(
+        "auth.callback.vk",
+        kind=SpanKind.SERVER,
+        attributes={"http.request_id": request.headers.get("X-Request-Id")},
+    ) as span:
+        try:
+            vk_logined = await service.logout_vk_user(code, user, device_id, state, vk_settings.redirect_uri_logout)
+            span.set_attribute("vk_logouted", True)
             return vk_logined
         except Exception as e:
             span.set_attribute("error", True)

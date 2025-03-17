@@ -113,16 +113,21 @@ class YandexSettings(BaseSettings):
 
     client_id: str
     client_secret: str
-    auth_url: str
+    redirect_uri_login: str
+    redirect_uri_logout: str
+    auth_url_login: str
+    auth_url_logout: str
     token_url: str
     user_info_url: str
+    revoke_token_url: str
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="YANDEX_")
 
     def model_post_init(self, __context):
         """Формируем DSN после загрузки переменных"""
 
-        self.auth_url = f"https://oauth.yandex.ru/authorize?response_type=code&client_id={self.client_id}"
+        self.auth_url_login = f"https://oauth.yandex.ru/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri_login}"
+        self.auth_url_logout = f"https://oauth.yandex.ru/authorize?response_type=code&client_id={self.client_id}&redirect_uri={self.redirect_uri_logout}"
 
 
 class VkSettings(BaseSettings):
@@ -131,10 +136,12 @@ class VkSettings(BaseSettings):
     client_id: str
     client_secret: str
     code_challenge_method: str
-    redirect_uri: str
+    redirect_uri_login: str
+    redirect_uri_logout: str
     auth_url: str
     token_url: str
     user_info_url: str
+    logout_url: str
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="VK_")
 
