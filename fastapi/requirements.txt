@@ -3,3 +3,8 @@ elasticsearch[async]==8.17.0
 fastapi[all]===0.111.0
 fastapi-cache2==0.2.1
 redis==5.2.1
+opentelemetry-api==1.17.0
+opentelemetry-sdk==1.17.0
+opentelemetry-instrumentation-fastapi==0.38b0
+opentelemetry-exporter-jaeger==1.17.0
+black==22.3.0

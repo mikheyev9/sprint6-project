@@ -1,12 +1,15 @@
 from contextlib import asynccontextmanager
 
 from fastapi.responses import ORJSONResponse
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from src.api.routers import main_router
-from src.core.config import project_settings, redis_settings
+from src.core.config import jaeger_settings, project_settings, redis_settings
+from src.core.jaeger import configure_tracer
 from src.db.init_postgres import create_first_superuser
-from src.db.redis_cache import RedisCacheManager
+from src.db.postgres import create_database
+from src.db.redis_cache import RedisCacheManager, RedisClientFactory
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 
 
 @asynccontextmanager
@@ -14,7 +17,9 @@ async def lifespan(app: FastAPI):
     """Управление ресурсами FastAPI."""
 
     redis_cache_manager = RedisCacheManager(redis_settings)
+    redis_client = await RedisClientFactory.create(redis_settings.dsn)
     try:
+        await create_database(redis_client)
         await create_first_superuser()
         await redis_cache_manager.setup()
 
@@ -37,3 +42,16 @@ app = FastAPI(
 )
 
 app.include_router(main_router)
+
+if jaeger_settings.debug:
+    configure_tracer()
+    FastAPIInstrumentor.instrument_app(app)
+
+
+@app.middleware("http")
+async def before_request(request: Request, call_next):
+    response = await call_next(request)
+    request_id = request.headers.get("X-Request-Id")
+    if not request_id:
+        return ORJSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"detail": "X-Request-Id is required"})
+    return response

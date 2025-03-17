@@ -24,7 +24,7 @@ def main():
         ETL(Indexes.GENRES, Tables.GENRE, GenreDTO, Query.get_genres_query),
     ]
 
-    threads = []
+    threads: list[Thread] = []
     for config in etl_configs:
         thread = Thread(target=etl_manager.run_etl, args=(config,))
         threads.append(thread)

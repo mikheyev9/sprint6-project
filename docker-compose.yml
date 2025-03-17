@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   etl:
     build:
@@ -11,34 +13,73 @@ services:
       - theatre-db
       - elasticsearch
       - redis
+    networks:
+      - movies-net
 
-  fastapi:
+  fastapi1:
     build:
       context: ./fastapi
       dockerfile: Dockerfile
-    container_name: fastapi
     ports:
-      - "8000:8000"
+      - "8080:8080"
     env_file:
       - .env
     depends_on:
       - etl
       - redis
       - theatre-db
+      - jaeger
+    networks:
+      - movies-net
 
-  fastapi_auth:
+  fastapi2:
+    build:
+      context: ./fastapi
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8080"
+    env_file:
+      - .env
+    depends_on:
+      - etl
+      - redis
+      - theatre-db
+      - jaeger
+    networks:
+      - movies-net
+
+  fastapi_auth1:
     build:
       context: ./fastapi_auth
       dockerfile: Dockerfile
-    container_name: fastapi_auth
     ports:
-      - "8070:8000"
+      - "8070:8070"
     env_file:
       - .env
     depends_on:
       - etl
       - redis
       - theatre-db
+      - jaeger
+    networks:
+      - movies-net
+
+  fastapi_auth2:
+    build:
+      context: ./fastapi_auth
+      dockerfile: Dockerfile
+    ports:
+      - "8071:8070"
+    env_file:
+      - .env
+    depends_on:
+      - etl
+      - redis
+      - theatre-db
+      - jaeger
+    networks:
+      - movies-net
+
   redis:
     image: redislabs/redismod:latest
     container_name: redis
@@ -47,6 +88,8 @@ services:
     restart: always
     volumes:
       - redis_data:/data
+    networks:
+      - movies-net
 
   elasticsearch:
     image: elasticsearch:8.7.0
@@ -62,6 +105,8 @@ services:
       - theatre-db
     ports:
       - "9200:9200"
+    networks:
+      - movies-net
 
   nginx:
     image: nginx:latest
@@ -70,10 +115,14 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/configs:/etc/nginx/conf.d:ro
     depends_on:
-      - fastapi
-      - fastapi_auth
+      - fastapi1
+      - fastapi2
+      - fastapi_auth1
+      - fastapi_auth2
     ports:
       - "80:80"
+    networks:
+      - movies-net
 
   theatre-db:
     image: postgres:16
@@ -87,7 +136,22 @@ services:
     restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/database_dump.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - movies-net
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger
+    ports:
+      - "14268:14268"
+      - "16686:16686"
+    networks:
+      - movies-net
+
+networks:
+  movies-net:
+    driver: bridge
 
 volumes:
   postgres_data:
