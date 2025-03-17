@@ -12,7 +12,6 @@ from src.db.redis_cache import RedisClientFactory
 from src.models.auth_history import AuthHistory
 from src.models.user import User
 from src.schemas.user_schema import UserCreate
-from src.utils.detect_device import detect_device_type
 
 from fastapi import Depends, Request
 
@@ -71,13 +70,10 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
         redis = await RedisClientFactory.create(project_settings.redis_dsn)
         refresh_token = await refresh_auth_backend.get_strategy().write_token(user)
         response.set_cookie(key="refresh_token", value=refresh_token, httponly=True)
-        user_agent = request.headers.get("User-Agent")
+
         async for session in get_async_session():
             auth_entry = AuthHistory(
-                user_id=user.id,
-                user_agent=user_agent,
-                user_device_type=detect_device_type(user_agent),
-                timestamp=datetime.now(),
+                user_id=user.id, user_agent=request.headers.get("User-Agent"), timestamp=datetime.now()
             )
             session.add(auth_entry)
             await session.commit()
