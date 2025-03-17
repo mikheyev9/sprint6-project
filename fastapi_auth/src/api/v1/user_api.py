@@ -14,6 +14,7 @@ from src.core.user_core import (
 from src.db.redis_cache import RedisClientFactory
 from src.models.user import User
 from src.schemas.user_schema import UserCreate, UserRead, UserUpdate
+from src.services.auth_history_service import AuthHistoryService, get_auth_history
 from src.services.vk_service import VkService, get_vk_service
 from src.services.yandex_service import YandexService, get_yandex_service
 
@@ -183,6 +184,7 @@ async def auth_yandex(
         try:
             yandex_logined = await service.login_yandex_user(code, device_id, device_name)
             span.set_attribute("yandex_logined", True)
+            await auth_service.create(user.id, user_agent)
             return yandex_logined
         except Exception as e:
             span.set_attribute("error", True)
@@ -261,6 +263,7 @@ async def auth_vk(
             description="State fore authorization",
         ),
     ],
+    auth_service: AuthHistoryService = Depends(get_auth_history),
     service: VkService = Depends(get_vk_service),
 ):
     with tracer.start_as_current_span(

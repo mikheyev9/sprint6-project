@@ -111,3 +111,4 @@ class YandexService:
         await redis_client.delete(f"refresh_token:{user.id}")
         await redis_client.delete(f"yandex_device:{device_name}", device_id)
         return {"status": "Tokens revoked", **logout_response}
+
