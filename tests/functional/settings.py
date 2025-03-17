@@ -11,6 +11,7 @@ class ServiceSettings(BaseSettings):
     """Настройки сервиса."""
 
     host: str
+    port: int
     dsn: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="SERVICE_")
@@ -18,7 +19,7 @@ class ServiceSettings(BaseSettings):
     def model_post_init(self, __context):
         """Формируем DSN после загрузки переменных."""
 
-        self.dsn = f"http://{self.host}"
+        self.dsn = f"http://{self.host}:{self.port}"
 
 
 class ElasticsearchSettings(BaseSettings):
