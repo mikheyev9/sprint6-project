@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi.responses import ORJSONResponse
@@ -8,13 +9,13 @@ from src.core.jaeger import configure_tracer
 from src.db.init_postgres import create_first_superuser
 from src.db.postgres import create_database
 from src.db.redis_cache import RedisCacheManager, RedisClientFactory
+from src.auth_server.grpc.grpc_server import GRPCAuthService
 
 from fastapi import FastAPI, Request, status
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Управление ресурсами FastAPI."""
 
     redis_cache_manager = RedisCacheManager(redis_settings)
     redis_client = await RedisClientFactory.create(redis_settings.dsn)
@@ -23,10 +24,16 @@ async def lifespan(app: FastAPI):
         await create_first_superuser()
         await redis_cache_manager.setup()
 
+        grpc_auth_service = GRPCAuthService(port=project_settings.auth_grpc_port)
+        app.state.grpc_auth_service = grpc_auth_service
+        app.state.fast_server_task = asyncio.create_task(grpc_auth_service.serve())
+
         yield
 
     finally:
         await redis_cache_manager.tear_down()
+        await app.state.grpc_auth_service.stop()
+        app.state.fast_server_task.cancel()
 
 
 app = FastAPI(

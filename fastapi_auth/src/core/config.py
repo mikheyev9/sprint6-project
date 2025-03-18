@@ -56,6 +56,8 @@ class ProjectSettings(BaseSettings):
     jwt_refresh_lifetime_seconds: int = 86400
     min_password_length: int = 3
 
+    auth_grpc_port: int
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
     debug: bool = False
 

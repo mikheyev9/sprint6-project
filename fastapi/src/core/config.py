@@ -44,6 +44,9 @@ class ProjectSettings(BaseSettings):
     elasticsearch_port: int
     elasticsearch_dsn: str = ""
 
+    auth_grpc_host: str
+    auth_grpc_port: int
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
     debug: bool = False
 

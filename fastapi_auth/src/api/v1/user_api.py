@@ -184,7 +184,6 @@ async def auth_yandex(
         try:
             yandex_logined = await service.login_yandex_user(code, device_id, device_name)
             span.set_attribute("yandex_logined", True)
-            await auth_service.create(user.id, user_agent)
             return yandex_logined
         except Exception as e:
             span.set_attribute("error", True)
