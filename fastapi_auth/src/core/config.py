@@ -32,22 +32,6 @@ class ProjectSettings(BaseSettings):
         ]
     )
 
-    # Redis
-    redis_host: str
-    redis_port: int
-    redis_user: str
-    redis_password: str
-    redis_db_index: int
-    redis_dsn: str = ""
-
-    # Postgres
-    postgres_db_name: str
-    postgres_host: str
-    postgres_port: int
-    postgres_user: str
-    postgres_password: str
-    postgres_dsn: str = ""
-
     # Auth
     secret: str = "SECRET"
     first_superuser_email: Optional[EmailStr] = None
@@ -83,7 +67,7 @@ class RedisSettings(BaseSettings):
 class PostgresSettings(BaseSettings):
     """Настройки Postgres."""
 
-    db_name: str
+    db: str
     host: str
     port: int
     user: str
@@ -95,7 +79,7 @@ class PostgresSettings(BaseSettings):
     def model_post_init(self, __context):
         """Формируем DSN после загрузки переменных"""
 
-        self.dsn = f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.db_name}"
+        self.dsn = f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"
 
 
 class AuthSettings(BaseSettings):
@@ -166,6 +150,21 @@ class JaegerSettings(BaseSettings):
         self.dsn = f"http://{self.host_name}:{self.port}/{self.endpoint}"
 
 
+class KafkaSettings(BaseSettings):
+    """Настройки Kafka."""
+
+    host: str
+    port: int
+    dsn: str
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", env_prefix="KAFKA_")
+
+    def model_post_init(self, __context):
+        """Формируем DSN после загрузки переменных."""
+
+        self.dsn = f"{self.host}:{self.port}"
+
+
 project_settings = ProjectSettings()  # type: ignore
 redis_settings = RedisSettings()  # type: ignore
 postgres_settings = PostgresSettings()  # type: ignore
@@ -173,3 +172,4 @@ auth_settings = AuthSettings()  # type: ignore
 yandex_settings = YandexSettings()  # type: ignore
 vk_settings = VkSettings()  # type: ignore
 jaeger_settings = JaegerSettings()  # type: ignore
+kafka_settings = KafkaSettings()  # type: ignore

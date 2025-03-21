@@ -89,7 +89,7 @@ async def login_social(
             raise
 
 
-@router.get(
+@router.post(
     "/logout-social/{social_name}",
     tags=["auth"],
     summary="Redirect to social",

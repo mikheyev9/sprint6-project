@@ -31,19 +31,6 @@ class ProjectSettings(BaseSettings):
         ]
     )
 
-    # Redis
-    redis_host: str
-    redis_port: int
-    redis_user: str
-    redis_password: str
-    redis_db_index: int
-    redis_dsn: str = ""
-
-    # Elasticsearch
-    elasticsearch_host: str
-    elasticsearch_port: int
-    elasticsearch_dsn: str = ""
-
     auth_grpc_host: str
     auth_grpc_port: int
 

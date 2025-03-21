@@ -6,7 +6,7 @@ from fastapi_users import BaseUserManager, FastAPIUsers, InvalidPasswordExceptio
 from fastapi_users.authentication import AuthenticationBackend, BearerTransport, JWTStrategy
 from fastapi_users_db_sqlalchemy import SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession
-from src.core.config import auth_settings, project_settings
+from src.core.config import auth_settings, project_settings, redis_settings
 from src.db.postgres import get_async_session
 from src.db.redis_cache import RedisClientFactory
 from src.models.auth_history import AuthHistory
@@ -68,7 +68,7 @@ class UserManager(UUIDIDMixin, BaseUserManager[User, UUID]):
 
     async def on_after_login(self, user: User, request: Request | None = None, response=None) -> None:
         """Выполняется после входа пользователя в систему."""
-        redis = await RedisClientFactory.create(project_settings.redis_dsn)
+        redis = await RedisClientFactory.create(redis_settings.dsn)
         refresh_token = await refresh_auth_backend.get_strategy().write_token(user)
         response.set_cookie(key="refresh_token", value=refresh_token, httponly=True)
         user_agent = request.headers.get("User-Agent")

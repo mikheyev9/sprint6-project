@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import aiohttp
 from fastapi.responses import RedirectResponse
 from fastapi_users.exceptions import UserNotExists
-from src.core.config import project_settings, vk_settings
+from src.core.config import redis_settings, vk_settings
 from src.core.user_core import UserManager, auth_backend, get_user_manager, refresh_auth_backend
 from src.db.redis_cache import RedisClientFactory
 from src.schemas.user_schema import UserCreate
@@ -46,7 +46,7 @@ class VkService:
 
     async def get_vk_code(self, url) -> str:
         """Получение данных для ссылки редиректа в ВК"""
-        redis = await RedisClientFactory.create(project_settings.redis_dsn)
+        redis = await RedisClientFactory.create(redis_settings.dsn)
         state = await redis.get("state")
         if not state:
             state = await self.get_random_characters(self.state_length)
@@ -73,7 +73,7 @@ class VkService:
 
     async def get_vk_token(self, code: str, device_id: str, state: str, redirect_uri: str) -> str:
         """Получение на сайте ВК access_token"""
-        redis = await RedisClientFactory.create(project_settings.redis_dsn)
+        redis = await RedisClientFactory.create(redis_settings.dsn)
         state_redis = await redis.get("state")
         if not state_redis or state != state_redis.decode("ascii"):
             raise HTTPException(status_code=404, detail="Param: state incorrect")
@@ -116,7 +116,7 @@ class VkService:
         """Генерация токенов для пользователя"""
         access_token = await auth_backend.get_strategy().write_token(user)
         refresh_token = await refresh_auth_backend.get_strategy().write_token(user)
-        redis = await RedisClientFactory.create(project_settings.redis_dsn)
+        redis = await RedisClientFactory.create(redis_settings.dsn)
         await redis.set(f"access_token:{user.id}", access_token)
         await redis.set(f"refresh_token:{user.id}", refresh_token)
         return {"access_token": access_token, "refresh_token": refresh_token}
@@ -145,7 +145,7 @@ class VkService:
         """Разлогинивание пользователя по данным ВК."""
         access_token = await self.get_vk_token(code, device_id, state, redirect_uri)
         logout_response = await self.revoke_vk_token(access_token)
-        redis = await RedisClientFactory.create(project_settings.redis_dsn)
-        await redis.delete(f"access_token:{user.id}")
-        await redis.delete(f"refresh_token:{user.id}")
+        # redis = await RedisClientFactory.create(redis_settings.dsn)
+        # await redis.delete(f"access_token:{user.id}")
+        # await redis.delete(f"refresh_token:{user.id}")
         return {"status": "Tokens revoked", **logout_response}
